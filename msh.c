@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <stdbool.h>
 
 #define WHITESPACE " \t\n"      // We want to split our command line up into tokens
                                 // so we need to define what delimits our tokens.
@@ -41,29 +42,29 @@
 
 typedef struct command_t {
   char* string;
-
   char* tokens[ MAX_NUM_ARGUMENTS ];
-
   unsigned int token_count;
-
 } command_t;
 
 command_t* command_read();
 void command_free( command_t* this );
 
-void read_input( char* cmd_str );
-
 int main()
 {
-  while( 1 )
+  bool running = true;
+  while( running )
   {
-    // Print out the msh prompt
     command_t* command = command_read();
 
-    int token_index = 0;
-    for( token_index = 0; token_index < command->token_count; token_index++ ) 
+    // hard-coded actions
+    if ( strcmp( command->tokens[ 0 ], "quit" ) == 0
+      || strcmp( command->tokens[ 0 ], "exit" ) )
     {
-      printf("token[%d] = %s\n", token_index, command->tokens[ token_index ] );  
+      running = false;
+    }
+    // check for binaries
+    else
+    {
     }
 
     command_free( command );
