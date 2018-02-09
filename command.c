@@ -14,7 +14,6 @@ command_t* command_read()
   printf( "msh> " );
 
   command_t* this = malloc( sizeof( command_t ) );
-  this->string = calloc( sizeof( char ), MAX_COMMAND_SIZE );
   this->tokens = list_create();
 
   // temporary list of all the characters in the string
