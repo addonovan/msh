@@ -25,10 +25,13 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "command.h"
 #include "list.h"
 #include "built_in.h"
 #include "handlers.h"
+
+pid_t g_current_pid = ( pid_t ) 0;
 
 pid_t run_command( 
     const list_t* pids, 
@@ -36,9 +39,13 @@ pid_t run_command(
     const command_t* command 
 );
 
+static void handle_sig( int signal );
+
+void wait_child();
+
 int main()
 {
-  handle_init();
+  handler_t* handler = handler_create( &handle_sig );
 
   list_t* pids = list_create(); 
   list_t* history = list_create();
@@ -68,6 +75,8 @@ int main()
 
       pid_t* pid = malloc( sizeof( pid_t ) );
       *pid = run_command( pids, history, command );
+      g_current_pid = *pid;
+
       if ( *pid == 0 )
       {
         free( pid );
@@ -76,10 +85,52 @@ int main()
       {
         list_push( pids, ( void* ) pid );
       }
+
+      wait_child();
     }
   }
 
+  list_free( pids );
+  list_free( history );
+  handler_free( handler );
+
   return 0;
+}
+
+void wait_child()
+{
+  int status;
+  waitpid( g_current_pid, &status, 0 );
+
+  if ( WIFSIGNALED( status ) )
+  {
+    int exit_signal = WTERMSIG( status );
+    printf( "[%d] exited by signal %d\n", g_current_pid, exit_signal );
+  }
+
+  // if we received a non-zero exit code, that means bad, so tell
+  // the user that the program exitted incorrectly
+  if ( WIFEXITED( status ) )
+  {
+    int exit_status = WEXITSTATUS( status );
+    if ( exit_status != 0 )
+    {
+      printf( "X[%d] ", exit_status );
+    }  
+  }
+}
+
+void handle_sig( int signal )
+{
+  if ( g_current_pid == 0 )
+    return;
+
+  switch ( signal )
+  {
+    case SIGINT:
+      kill( g_current_pid, SIGINT );
+      break;
+  }
 }
 
 pid_t run_command( 

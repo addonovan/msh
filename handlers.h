@@ -2,12 +2,20 @@
 #define MSH_HANDLERS_H
 
 #include <signal.h>
+#include <unistd.h>
 
-void handle_init();
+typedef struct sigaction sigaction_t;
+typedef struct handler_t handler_t;
 
-void handle_signal( int signal );
+struct handler_t
+{
+  sigaction_t action;
+  void ( *handler )( int );
+};
 
-void handle_sigint();
+handler_t* handler_create( void ( *handler )( int ) );
+
+void handler_free( handler_t* );
 
 #endif
 

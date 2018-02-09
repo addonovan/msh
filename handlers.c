@@ -4,34 +4,23 @@
 #include <stdio.h>
 #include "handlers.h"
 
-typedef struct sigaction sigaction_t;
-
-void handle_init()
+handler_t* handler_create( void ( *handler )( int ) )
 {
-  sigaction_t action;
-  memset( &action, 0, sizeof( sigaction_t ) );
+  handler_t* this = calloc( 1, sizeof( handler_t ) );
+  this->action.sa_handler = handler;
 
-  action.sa_handler = &handle_signal;
-
-  if ( sigaction( SIGINT, &action, NULL ) < 0 )
+  if ( sigaction( SIGINT, &this->action, NULL ) < 0 )
   {
     perror( "sigaction: " );
-    return;
+    free( this );
+    return NULL;
   }
+
+  return this;
 }
 
-void handle_signal( int signal )
+void handler_free( handler_t* this )
 {
-  switch ( signal )
-  {
-    case SIGINT:
-      handle_sigint();
-      break;
-  }
-}
-
-void handle_sigint()
-{
-  printf( "Why would you try to kill me? :(\n" );
+  free( this );
 }
 

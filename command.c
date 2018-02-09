@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
-#include <sys/wait.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -147,31 +146,6 @@ pid_t command_exec( const command_t* this )
     exit( 1 );
 
 #undef SEARCH_PATH_COUNT
-  }
-  else
-  {
-    int status;
-    if ( waitpid( child_pid, &status, 0 ) == -1 )
-    {
-      printf( "Failed to wait for child!\n" );
-    }
-
-    if ( WIFSIGNALED( status ) )
-    {
-      int exit_signal = WTERMSIG( status );
-      printf( "[%d] exited by signal %d\n", child_pid, exit_signal );
-    }
-
-    // if we received a non-zero exit code, that means bad, so tell
-    // the user that the program exitted incorrectly
-    if ( WIFEXITED( status ) )
-    {
-      int exit_status = WEXITSTATUS( status );
-      if ( exit_status != 0 )
-      {
-        printf( "X[%d] ", exit_status );
-      }  
-    }
   }
 
   return child_pid;
