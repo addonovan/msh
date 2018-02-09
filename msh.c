@@ -27,9 +27,8 @@
 #include <unistd.h>
 #include "command.h"
 #include "list.h"
+#include "built_in.h"
 
-void print_pids( const list_t* pids, unsigned int count );
-void print_history( const list_t* history, unsigned int count );
 pid_t run_command( 
     const list_t* pids, 
     const list_t* history, 
@@ -138,83 +137,22 @@ pid_t run_command(
   // show process ids?
   else if ( strcmp( action, "showpids" ) == 0 )
   {
-    unsigned int count = 10;
-
-    char* arg0 = list_get( command->tokens, 1 );
-    char* arg1 = list_get( command->tokens, 2 );
-
-    if ( arg0 != NULL )
-    {
-      if ( strcmp( arg0, "--all" ) == 0
-        || strcmp( arg0, "-a" ) == 0 )
-      {
-        count = pids->size;
-      }
-      else if ( strcmp( arg0, "--count" ) == 0 
-             || strcmp( arg0, "-c" ) == 0 )
-      {
-        if ( arg1 == NULL )
-        {
-          fprintf( stderr, "--count requires an integral option\n" );
-          return ( pid_t ) 0;
-        }
-        else
-        {
-          count = strtol( arg1, NULL, 0 );
-        }
-      }
-    }
-
-    if ( pids->size < count )
-    {
-      count = pids->size;
-    }
-
-    print_pids( pids, count );
+    built_in_showpids( command, pids );
   }
   // show the user their history
   else if ( strcmp( action, "history" ) == 0 )
   {
-    unsigned int count = 15;
-
-    if ( history->size < count )
-    {
-      count = history->size;
-    }
-
-    print_history( history, count );
+    built_in_history( command, history );
   }
   // change working directory
   else if ( strcmp( action, "cd" ) == 0 )
   {
-    char* dir; 
-    char* arg = list_get( command->tokens, 1 );
-
-    // no arguments? send them home
-    if ( arg == NULL )
-    {
-      dir = getenv( "HOME" );
-    }
-    // otherwise, navigate to the given directory
-    else
-    {
-      dir = arg;
-    }
-
-    chdir( dir );
+    built_in_cd( command );
   }
   // print working directory
   else if ( strcmp( action, "pwd" ) == 0 )
   {
-    char cwd[ 1024 ]; // I really hope it's not longer than this
-    if ( getcwd( cwd, sizeof( cwd ) ) != NULL ) 
-    {
-      printf( "%s\n", cwd );
-    }
-    else
-    {
-      perror( "getcwd() error\n" );
-    }
+    build_in_pwd( command );
   }
   // check for binaries
   else
@@ -225,38 +163,5 @@ pid_t run_command(
   return ( pid_t ) 0;
 }
 
-void print_history( const list_t* history, unsigned int count )
-{
-  unsigned int start = history->size - count;
-  list_iter_t* iter = list_iter( history );
-  list_iter_jump( iter, start );
 
-  printf( "Showing last %d commands (of %d total)\n", count, history->size );
-
-  int i;
-  for ( i = 0; i < count; i++ )
-  {
-    command_t* command = list_iter_pop( iter );
-    printf( "%d: %s\n", i, command->string );
-  }
-
-  list_iter_free( iter );
-}
-
-void print_pids( const list_t* pids, unsigned int count )
-{
-  unsigned int start = pids->size - count;
-  list_iter_t* iter = list_iter( pids );
-  list_iter_jump( iter, start );
-
-  printf( "Showing last %d pids (of %d total)\n", count, pids->size );
-
-  int i;
-  for ( i = 0; i < count; i++ )
-  {
-    printf( "%d: %d\n", i, *( ( pid_t* ) list_iter_pop( iter ) ) );
-  }
-
-  list_iter_free( iter );
-}
 
