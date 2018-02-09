@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include "list.h"
 
-#define MAX_COMMAND_SIZE 255
-
 /**
  * A command type.
  */

@@ -20,10 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#define WHITESPACE " \t\n"
-#define MAX_COMMAND_SIZE 255
-#define MAX_NUM_ARGUMENTS 10
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
