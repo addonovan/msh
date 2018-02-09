@@ -31,14 +31,9 @@
 #include <signal.h>
 #include <stdbool.h>
 
-#define WHITESPACE " \t\n"      // We want to split our command line up into tokens
-                                // so we need to define what delimits our tokens.
-                                // In this case  white space
-                                // will separate the tokens on our command line
-
-#define MAX_COMMAND_SIZE 255    // The maximum command-line size
-
-#define MAX_NUM_ARGUMENTS 5     // Mav shell only supports five arguments
+#define WHITESPACE " \t\n"
+#define MAX_COMMAND_SIZE 255
+#define MAX_NUM_ARGUMENTS 5
 
 /**
  * A command type.
@@ -70,7 +65,7 @@ command_t* command_read();
  * @param[this]
  *      The command to free.
  */
-void command_free( command_t* this );
+void command_free( command_t* );
 
 /**
  * Tries to execute the given command.
@@ -79,7 +74,7 @@ void command_free( command_t* this );
  *      The command to execute.
  * @return If the command was successfully found and executed.
  */
-bool command_exec( command_t* this );
+bool command_exec( command_t* );
 
 int main()
 {
