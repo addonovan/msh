@@ -57,13 +57,12 @@ command_t* command_read()
       // reset the length to 0
       length = 0;
     }
-    // just add any other character onto the buffer
-    else
+    // just add any other printable char onto the buffer
+    else if ( c >= 32 )
     {
       buff[ length ] = c;
       length += 1;
     }
-
 
     // if we found a newline, then that also means we end the line
     if ( c == '\r' || c == '\n' )
