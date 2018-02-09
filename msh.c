@@ -62,7 +62,27 @@ int main()
         }
         else
         {
-          long index = strtol( action + 1, NULL, 0 );
+          unsigned int index;
+
+          // + means we're going to be using the absolute position
+          // in the list
+          if ( action[ 1 ] == '+' )
+          {
+            index = strtol( action + 2, NULL, 0 );
+          }
+          // otherwise, we'll just use the past 15 commands
+          else
+          {
+            int offset = history->size - 15;
+            if ( offset < 0 )
+            {
+              offset = 0;
+            }
+
+
+            index = offset + strtol( action + 1, NULL, 0 );
+          }
+
           prev = ( command_t* ) list_get( history, index );
         }
 
