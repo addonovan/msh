@@ -187,7 +187,7 @@ pid_t run_command(
   // change working directory
   else if ( strcmp( action, "cd" ) == 0 )
   {
-    const char* dir; 
+    char* dir; 
     char* arg = list_get( command->tokens, 1 );
 
     // no arguments? send them home
@@ -202,6 +202,19 @@ pid_t run_command(
     }
 
     chdir( dir );
+  }
+  // print working directory
+  else if ( strcmp( action, "pwd" ) == 0 )
+  {
+    char cwd[ 1024 ]; // I really hope it's not longer than this
+    if ( getcwd( cwd, sizeof( cwd ) ) != NULL ) 
+    {
+      printf( "%s\n", cwd );
+    }
+    else
+    {
+      perror( "getcwd() error\n" );
+    }
   }
   // check for binaries
   else
