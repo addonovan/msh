@@ -6,6 +6,64 @@
 #include "list.h"
 #include "command.h"
 
+command_t* built_in_get_history_item(
+   const char* action,
+   const list_t* history
+)
+{
+  unsigned int index;
+
+  // + means we're going to be using the absolute position
+  // in the list
+  if ( action[ 1 ] == '+' )
+  {
+    index = strtol( action + 2, NULL, 0 );
+  }
+  // otherwise, we'll just use the past 15 commands
+  else
+  {
+    int offset = history->size - 15;
+    if ( offset < 0 )
+    {
+      offset = 0;
+    }
+
+
+    index = offset + strtol( action + 1, NULL, 0 );
+  }
+
+  return ( command_t* ) list_get( history, index );
+} 
+
+command_t* built_in_run_history( 
+    command_t* command, 
+    const list_t* history 
+)
+{
+  char* action = list_get( command->tokens, 0 );
+  command_t* prev = NULL;
+
+  // run the last command
+  if ( strcmp( action, "!!" ) == 0 )
+  {
+    prev = ( command_t* ) list_get( history, history->size - 1 );
+  }
+  else
+  {
+    prev = built_in_get_history_item( action, history );
+  }
+
+  // this command has out-lived its usefulness
+  command_free( command );
+
+  // tell the user if the action didn't exist
+  if ( prev == NULL )
+    return NULL;
+  // expand back to the previous command
+  else
+    return prev;
+}
+
 void print_pids( const list_t* pids, unsigned int count )
 {
   unsigned int start = pids->size - count;
@@ -14,7 +72,7 @@ void print_pids( const list_t* pids, unsigned int count )
 
   printf( "Showing last %d pids (of %d total)\n", count, pids->size );
 
-  int i;
+  unsigned int i;
   for ( i = 0; i < count; i++ )
   {
     printf( "%d: %d\n", i, *( ( pid_t* ) list_iter_pop( iter ) ) );
@@ -69,7 +127,7 @@ void print_history( const list_t* history, unsigned int count )
 
   printf( "Showing last %d commands (of %d total)\n", count, history->size );
 
-  int i;
+  unsigned int i;
   for ( i = 0; i < count; i++ )
   {
     command_t* command = list_iter_pop( iter );
@@ -81,6 +139,8 @@ void print_history( const list_t* history, unsigned int count )
 
 void built_in_history( const command_t* command, const list_t* history )
 {
+  (void)(command);
+
   unsigned int count = 15;
 
   if ( history->size < count )
@@ -112,6 +172,8 @@ void built_in_cd( const command_t* command )
 
 void build_in_pwd( const command_t* command )
 {
+  (void)(command);
+
   char cwd[ 1024 ]; // I really hope it's not longer than this
   if ( getcwd( cwd, sizeof( cwd ) ) != NULL ) 
   {

@@ -46,7 +46,7 @@ command_t* command_read()
       in_quote ^= true;
     }
     // whitespace denotes the end of a token (but only outside quotes)
-    else if ( !in_quote && c == ' ' || c == '\t' || c == '\n' || c == '\r' )
+    else if ( !in_quote && ( c == ' ' || c == '\t' || c == '\n' || c == '\r' ) )
     {
       // allocate the word on the stack
       char* word = calloc( sizeof( char ), length + 1 );

@@ -44,7 +44,6 @@ int main()
   {
     command_t* command = command_read();
 
-    // hard-coded actions
     if ( command->tokens->size != 0 )
     {
       // history-relative options get expanded before they're placed
@@ -52,52 +51,12 @@ int main()
       char* action = list_get( command->tokens, 0 );
       if ( action[ 0 ] == '!' )
       {
-        command_t* prev = NULL;
-
-        // run the last command
-        if ( strcmp( action, "!!" ) == 0 )
-        {
-          prev = ( command_t* ) list_get( history, history->size - 1 );
-        }
-        else
-        {
-          unsigned int index;
-
-          // + means we're going to be using the absolute position
-          // in the list
-          if ( action[ 1 ] == '+' )
-          {
-            index = strtol( action + 2, NULL, 0 );
-          }
-          // otherwise, we'll just use the past 15 commands
-          else
-          {
-            int offset = history->size - 15;
-            if ( offset < 0 )
-            {
-              offset = 0;
-            }
-
-
-            index = offset + strtol( action + 1, NULL, 0 );
-          }
-
-          prev = ( command_t* ) list_get( history, index );
-        }
-
-        // this command has out-lived its usefulness
-        command_free( command );
-
-        // tell the user if the action didn't exist
-        if ( prev == NULL )
+        // if the command didn't resolve correctly, then skip the rest
+        // of the iteration
+        if ( ( command = built_in_run_history( command, history ) ) == NULL )
         {
           fprintf( stderr, "Command not in history.\n" );
           continue;
-        }
-        // expand back to the previous command
-        else
-        {
-          command = prev;
         }
       }
 

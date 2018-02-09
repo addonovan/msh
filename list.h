@@ -14,7 +14,7 @@ struct list_t
   list_node_t* head;
   list_node_t* tail;
 
-  int size;
+  unsigned int size;
 };
 
 /**
