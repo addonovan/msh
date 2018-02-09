@@ -17,6 +17,8 @@ command_t* command_read()
   this->string = calloc( sizeof( char ), MAX_COMMAND_SIZE );
   this->tokens = list_create();
 
+  // temporary list of all the characters in the string
+  list_t* string = list_create();
 
 #define BUFFER_SIZE 255
   int length = 0; 
@@ -54,10 +56,6 @@ command_t* command_read()
       // add the word to the list
       list_push( this->tokens, ( void* ) word );
 
-      // if we found a newline, then that also means we end the line
-      if ( c == '\r' || c == '\n' )
-        break;
-
       // reset the length to 0
       length = 0;
     }
@@ -67,8 +65,31 @@ command_t* command_read()
       buff[ length ] = c;
       length += 1;
     }
+
+
+    // if we found a newline, then that also means we end the line
+    if ( c == '\r' || c == '\n' )
+    {
+      break;
+    }
+    else
+    {
+      char* other_c = malloc( sizeof( char ) );
+      *other_c = c;
+      list_push( string, other_c );
+    }
   }
 #undef BUFFER_SIZE
+
+  // consolidate string into a single char*
+  this->string = calloc( sizeof( char ), string->size + 1 );
+  list_iter_t* iter = list_iter( string );
+  while ( list_iter_peek( iter ) != NULL )
+  {
+    this->string[ iter->index ] = *( char* ) list_iter_pop( iter );
+  }
+  list_iter_free( iter );
+  list_free( string );
 
   return this;
 }

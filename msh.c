@@ -33,10 +33,12 @@
 #include "list.h"
 
 void print_pids( list_t* pids, unsigned int count );
+void print_history( list_t* history, unsigned int count );
 
 int main()
 {
   list_t* pids = list_create(); 
+  list_t* history = list_create();
 
   bool running = true;
   while( running )
@@ -91,6 +93,18 @@ int main()
 
         print_pids( pids, count );
       }
+      // show the user their history
+      else if ( strcmp( action, "history" ) == 0 )
+      {
+        unsigned int count = 15;
+
+        if ( history->size < count )
+        {
+          count = history->size;
+        }
+
+        print_history( history, count );
+      }
       // check for binaries
       else
       {
@@ -100,9 +114,28 @@ int main()
       }
     }
 
-    command_free( command );
+    // store the command in our history for later use
+    list_push( history, command );
   }
   return 0;
+}
+
+void print_history( list_t* history, unsigned int count )
+{
+  unsigned int start = history->size - count;
+  list_iter_t* iter = list_iter( history );
+  list_iter_jump( iter, start );
+
+  printf( "Showing last %d commands (of %d total)\n", count, history->size );
+
+  int i;
+  for ( i = 0; i < count; i++ )
+  {
+    command_t* command = list_iter_pop( iter );
+    printf( "%d: %s\n", i, command->string );
+  }
+
+  list_iter_free( iter );
 }
 
 void print_pids( list_t* pids, unsigned int count )
@@ -111,7 +144,6 @@ void print_pids( list_t* pids, unsigned int count )
   list_iter_t* iter = list_iter( pids );
   list_iter_jump( iter, start );
 
-  printf( "Starting at %d\n", start );
   printf( "Showing last %d pids (of %d total)\n", count, pids->size );
 
   int i;
