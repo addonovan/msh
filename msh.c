@@ -70,14 +70,16 @@ int main()
           prev = ( command_t* ) list_get( history, index );
         }
 
-        // expand back to the previous command
+        // this command has out-lived its usefulness
         command_free( command );
 
+        // tell the user if the action didn't exist
         if ( prev == NULL )
         {
           fprintf( stderr, "Command not in history.\n" );
           continue;
         }
+        // expand back to the previous command
         else
         {
           command = prev;
