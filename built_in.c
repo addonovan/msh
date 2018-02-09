@@ -6,7 +6,16 @@
 #include "list.h"
 #include "command.h"
 
-command_t* built_in_get_history_item(
+//
+// !!, !<n>, and !+<n>
+//
+
+/**
+ * Runs an item from an offset in the history list.
+ * [action] is just the string to parse into a command, while [history] is
+ * the list of history items.
+ */
+command_t* get_history_item(
    const char* action,
    const list_t* history
 )
@@ -50,20 +59,22 @@ command_t* built_in_run_history(
   }
   else
   {
-    prev = built_in_get_history_item( action, history );
+    prev = get_history_item( action, history );
   }
 
   // this command has out-lived its usefulness
   command_free( command );
 
-  // tell the user if the action didn't exist
-  if ( prev == NULL )
-    return NULL;
-  // expand back to the previous command
-  else
-    return prev;
+  return prev;
 }
 
+//
+// showpids
+//
+
+/**
+ * Prints the last [count] pids from the [pids] list.
+ */
 void print_pids( const list_t* pids, unsigned int count )
 {
   unsigned int start = pids->size - count;
@@ -119,6 +130,13 @@ void built_in_showpids( const command_t* command, const list_t* pids )
 }
 
 
+//
+// history
+//
+
+/**
+ * Prints the last [count] items from the [history] list.
+ */
 void print_history( const list_t* history, unsigned int count )
 {
   unsigned int start = history->size - count;
@@ -151,6 +169,10 @@ void built_in_history( const command_t* command, const list_t* history )
   print_history( history, count );
 }
 
+//
+// cd
+//
+
 void built_in_cd( const command_t* command )
 {
   char* dir; 
@@ -169,6 +191,10 @@ void built_in_cd( const command_t* command )
 
   chdir( dir );
 }
+
+//
+// pwd
+//
 
 void build_in_pwd( const command_t* command )
 {
