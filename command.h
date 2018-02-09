@@ -1,6 +1,7 @@
 #ifndef MSH_COMMAND_H
 #define MSH_COMMAND_H
 
+#include <unistd.h>
 #include <stdbool.h>
 #include "list.h"
 
@@ -23,27 +24,19 @@ typedef struct command_t {
 /**
  * Reads a new command from the user. This also prints out the shell's
  * prompt.
- *
- * @return A new command structure.
  */
 command_t* command_read();
 
 /**
- * Frees a given command structure and its heap-allocated data.
- *
- * @param[this]
- *      The command to free.
+ * Frees this command structure and its heap-allocated data.
  */
 void command_free( command_t* );
 
 /**
- * Tries to execute the given command.
- *
- * @param[this]
- *      The command to execute.
- * @return If the command was successfully found and executed.
+ * Tries to execute the given command. This will return the pid of the
+ * child process which ran (or is running).
  */
-bool command_exec( command_t* );
+pid_t command_exec( command_t* );
 
 #endif
 

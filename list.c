@@ -54,9 +54,10 @@ list_iter_t* list_iter( list_t* this )
   return list_iter_create( this->head );
 }
 
-void list_iter_skip_to( list_iter_t* this, unsigned int index )
+void list_iter_jump( list_iter_t* this, unsigned int steps )
 {
-  while ( this->index < index )
+  unsigned int target = this->index + steps;
+  while ( this->current != NULL && this->index != target )
   {
     this->current = this->current->next;
     this->index += 1;

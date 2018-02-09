@@ -1,7 +1,6 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
-#include <unistd.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -76,7 +75,7 @@ command_t* command_read()
   return this;
 }
 
-bool command_exec( command_t* this )
+pid_t command_exec( command_t* this )
 {
   pid_t child_pid = fork();
 
@@ -155,7 +154,7 @@ bool command_exec( command_t* this )
     }
   }
 
-  return true;
+  return child_pid;
 }
 
 void command_free( command_t* this )

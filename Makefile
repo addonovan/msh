@@ -3,11 +3,11 @@ run: msh
 	./msh
 
 msh: msh.c *.h command list
-	$(CC) $(CCFLAGS) msh.c *.o -o msh
+	$(CC) $(CCFLAGS) -g msh.c *.o -o msh
 
 command: command.c *.h
-	$(CC) $(CCFLAGS) -c command.c
+	$(CC) $(CCFLAGS) -g -c command.c
 
 list: list.c *.h
-	$(CC) $(CCFLAGs) -c list.c
+	$(CC) $(CCFLAGs) -g -c list.c
 
