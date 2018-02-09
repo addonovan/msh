@@ -32,95 +32,150 @@
 #include "command.h"
 #include "list.h"
 
-void print_pids( list_t* pids, unsigned int count );
-void print_history( list_t* history, unsigned int count );
+void print_pids( const list_t* pids, unsigned int count );
+void print_history( const list_t* history, unsigned int count );
+pid_t run_command( 
+    const list_t* pids, 
+    const list_t* history, 
+    const command_t* command 
+);
 
 int main()
 {
   list_t* pids = list_create(); 
   list_t* history = list_create();
 
-  bool running = true;
-  while( running )
+  while( true )
   {
     command_t* command = command_read();
 
     // hard-coded actions
     if ( command->tokens->size != 0 )
     {
+      // history-relative options get expanded before they're placed
+      // in the history
       char* action = list_get( command->tokens, 0 );
-
-      // should we exit?
-      if ( strcmp( action, "quit" ) == 0
-        || strcmp( action, "exit" ) == 0 )
+      if ( action[ 0 ] == '!' )
       {
-        running = false;
-      }
-      // show process ids?
-      else if ( strcmp( action, "showpids" ) == 0 )
-      {
-        unsigned int count = 10;
+        command_t* prev = NULL;
 
-        char* arg0 = list_get( command->tokens, 1 );
-        char* arg1 = list_get( command->tokens, 2 );
-
-        if ( arg0 != NULL )
+        // run the last command
+        if ( strcmp( action, "!!" ) == 0 )
         {
-          if ( strcmp( arg0, "--all" ) == 0
-            || strcmp( arg0, "-a" ) == 0 )
-          {
-            count = pids->size;
-          }
-          else if ( strcmp( arg0, "--count" ) == 0 
-                 || strcmp( arg0, "-c" ) == 0 )
-          {
-            if ( arg1 == NULL )
-            {
-              fprintf( stderr, "--count requires an integral option\n" );
-              continue;
-            }
-            else
-            {
-              count = strtol( arg1, NULL, 0 );
-            }
-          }
+          prev = ( command_t* ) list_get( history, history->size - 1 );
+        }
+        else
+        {
+          long index = strtol( action + 1, NULL, 0 );
+          prev = ( command_t* ) list_get( history, index );
         }
 
-        if ( pids->size < count )
-        {
-          count = pids->size;
-        }
+        // expand back to the previous command
+        command_free( command );
 
-        print_pids( pids, count );
+        if ( prev == NULL )
+        {
+          fprintf( stderr, "Command not in history.\n" );
+          continue;
+        }
+        else
+        {
+          command = prev;
+        }
       }
-      // show the user their history
-      else if ( strcmp( action, "history" ) == 0 )
+
+      // store the command in our history for later use
+      list_push( history, command );
+
+      pid_t* pid = malloc( sizeof( pid_t ) );
+      *pid = run_command( pids, history, command );
+      if ( *pid == 0 )
       {
-        unsigned int count = 15;
-
-        if ( history->size < count )
-        {
-          count = history->size;
-        }
-
-        print_history( history, count );
+        free( pid );
       }
-      // check for binaries
       else
       {
-        pid_t* pid = malloc( sizeof( pid_t ) );
-        *pid = command_exec( command );
-        list_push( pids, pid );
+        list_push( pids, ( void* ) pid );
       }
     }
-
-    // store the command in our history for later use
-    list_push( history, command );
   }
+
   return 0;
 }
 
-void print_history( list_t* history, unsigned int count )
+pid_t run_command( 
+    const list_t* pids, 
+    const list_t* history, 
+    const command_t* command 
+)
+{
+  char* action = list_get( command->tokens, 0 );
+
+  // should we exit?
+  if ( strcmp( action, "quit" ) == 0
+    || strcmp( action, "exit" ) == 0 )
+  {
+    exit( 0 );
+  }
+  // show process ids?
+  else if ( strcmp( action, "showpids" ) == 0 )
+  {
+    unsigned int count = 10;
+
+    char* arg0 = list_get( command->tokens, 1 );
+    char* arg1 = list_get( command->tokens, 2 );
+
+    if ( arg0 != NULL )
+    {
+      if ( strcmp( arg0, "--all" ) == 0
+        || strcmp( arg0, "-a" ) == 0 )
+      {
+        count = pids->size;
+      }
+      else if ( strcmp( arg0, "--count" ) == 0 
+             || strcmp( arg0, "-c" ) == 0 )
+      {
+        if ( arg1 == NULL )
+        {
+          fprintf( stderr, "--count requires an integral option\n" );
+          return ( pid_t ) 0;
+        }
+        else
+        {
+          count = strtol( arg1, NULL, 0 );
+        }
+      }
+    }
+
+    if ( pids->size < count )
+    {
+      count = pids->size;
+    }
+
+    print_pids( pids, count );
+  }
+  // show the user their history
+  else if ( strcmp( action, "history" ) == 0 )
+  {
+    unsigned int count = 15;
+
+    if ( history->size < count )
+    {
+      count = history->size;
+    }
+
+    print_history( history, count );
+  }
+  // check for binaries
+  else
+  {
+    return command_exec( command );
+  }
+
+  return ( pid_t ) 0;
+}
+
+void print_history( const list_t* history, unsigned int count )
 {
   unsigned int start = history->size - count;
   list_iter_t* iter = list_iter( history );
@@ -138,7 +193,7 @@ void print_history( list_t* history, unsigned int count )
   list_iter_free( iter );
 }
 
-void print_pids( list_t* pids, unsigned int count )
+void print_pids( const list_t* pids, unsigned int count )
 {
   unsigned int start = pids->size - count;
   list_iter_t* iter = list_iter( pids );

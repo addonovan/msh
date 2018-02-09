@@ -36,7 +36,7 @@ void command_free( command_t* );
  * Tries to execute the given command. This will return the pid of the
  * child process which ran (or is running).
  */
-pid_t command_exec( command_t* );
+pid_t command_exec( const command_t* );
 
 #endif
 

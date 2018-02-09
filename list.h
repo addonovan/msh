@@ -32,12 +32,12 @@ void list_push( list_t*, void* item );
 /**
  * Gets the item at the index.
  */
-void* list_get( list_t*, int index );
+void* list_get( const list_t*, int index );
 
 /**
  * Returns an iterator for this list.
  */
-list_iter_t* list_iter( list_t* );
+list_iter_t* list_iter( const list_t* );
 
 /**
  * Deallocates this list and all of its data.
@@ -64,7 +64,7 @@ list_iter_t* list_iter_create( list_node_t* start );
  * progress forward. This will return NULL if there are 
  * no more items.
  */
-void* list_iter_peek( list_iter_t* );
+void* list_iter_peek( const list_iter_t* );
 
 /**
  * Returns the value at the current position, then moves

@@ -34,7 +34,7 @@ void list_push( list_t* this, void* item )
   this->size += 1;
 }
 
-void* list_get( list_t* this, int index )
+void* list_get( const list_t* this, int index )
 {
   if ( index >= this->size ) return NULL;
 
@@ -49,7 +49,7 @@ void* list_get( list_t* this, int index )
   return current->data;
 }
 
-list_iter_t* list_iter( list_t* this )
+list_iter_t* list_iter( const list_t* this )
 {
   return list_iter_create( this->head );
 }
@@ -92,7 +92,7 @@ list_iter_t* list_iter_create( list_node_t* start )
   return this;
 }
 
-void* list_iter_peek( list_iter_t* this )
+void* list_iter_peek( const list_iter_t* this )
 {
   if ( this->current == NULL ) return NULL;
 

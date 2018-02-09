@@ -94,7 +94,7 @@ command_t* command_read()
   return this;
 }
 
-pid_t command_exec( command_t* this )
+pid_t command_exec( const command_t* this )
 {
   pid_t child_pid = fork();
 
