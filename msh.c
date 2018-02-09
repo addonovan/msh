@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "command.h"
+#include "list.h"
 
 int main()
 {

@@ -2,6 +2,7 @@
 #define MSH_COMMAND_H
 
 #include <stdbool.h>
+#include "list.h"
 
 #define MAX_COMMAND_SIZE 255
 #define MAX_NUM_ARGUMENTS 10
