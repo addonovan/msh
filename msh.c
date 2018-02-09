@@ -157,23 +157,30 @@ bool command_exec( command_t* this )
       "/usr/bin",
       "/bin"
     };
-    char* program_name = this->tokens[ 0 ];
+    char* program_name = strdup( this->tokens[ 0 ] );
     char* program_path = calloc( sizeof( char ), 16 + strlen( program_name ) ); 
 
-    // copy all of the arguments (except for the program name)
-    // into a new array for us to pass to the 
-    char** args = malloc( sizeof( char* ) * ( this->token_count + 1 )  );
-    
-    args[ 0 ] = program_path; // value will change but always at same place
-    int i;
-    for ( i = 1; i < this->token_count && this->tokens[ i ] != NULL; i++ )
+    // create a NULL-terminated array from our tokens array if it
+    // doesn't already have it (I noticed that it wouldn't be NULL terminated
+    // if you used the max number of tokens)
+    char** args;
+    if ( this->tokens[ this->token_count ] != NULL )
     {
-      args[ i ] = strdup( this->tokens[ i ] );
+      args = calloc( sizeof( char* ), this->token_count + 1 );
+      memcpy( args, this->tokens, sizeof( this->tokens ) );
+      this->tokens[ this->token_count + 1 ] = NULL;
     }
-    args[ i ] = NULL;
-
+    else
+    {
+      args = this->tokens;
+    }
+    
+    // the value of this may change, but it will always point to
+    // the full path of the executable we're trying to run
+    this->tokens[ 0 ] = program_path;
 
     // try all of the search paths
+    int i;
     for ( i = 0; i < SEARCH_PATH_COUNT; i++ )
     {
       sprintf( program_path, "%s/%s", search_paths[ i ], program_name );
@@ -208,7 +215,7 @@ bool command_exec( command_t* this )
       int exit_status = WEXITSTATUS( status );
       if ( exit_status != 0 )
       {
-        printf( "[%d] exited with status %d\n", child_pid, exit_status );
+        printf( "X[%d] ", exit_status );
       }  
     }
   }
