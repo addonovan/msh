@@ -28,6 +28,7 @@
 #include "command.h"
 #include "list.h"
 #include "built_in.h"
+#include "handlers.h"
 
 pid_t run_command( 
     const list_t* pids, 
@@ -37,6 +38,8 @@ pid_t run_command(
 
 int main()
 {
+  handle_init();
+
   list_t* pids = list_create(); 
   list_t* history = list_create();
 

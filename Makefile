@@ -3,7 +3,7 @@ override CFLAGS += -Wall -Werror -pedantic
 run: msh
 	./msh
 
-msh: msh.c *.h command list built_in
+msh: msh.c *.h command list built_in handlers
 	$(CC) $(CFLAGS) -g msh.c *.o -o msh
 
 command: command.c *.h
@@ -14,4 +14,7 @@ list: list.c *.h
 
 built_in: built_in.c *.h
 	$(CC) $(CFLAGS) -g -c built_in.c
+
+handlers: handlers.c *.h
+	$(CC) $(CFLAGS) -g -c handlers.c
 
