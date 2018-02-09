@@ -45,7 +45,8 @@ typedef struct command_t {
   char* string;
 
   /** The tokens of the command string. */
-  char* tokens[ MAX_NUM_ARGUMENTS ];
+  // additional token to account for tokens[ 0 ] = executable name
+  char* tokens[ MAX_NUM_ARGUMENTS + 1 ];
 
   /** The number of tokens found in this command. */
   unsigned int token_count;
