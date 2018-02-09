@@ -28,8 +28,6 @@
 #include "command.h"
 #include "list.h"
 
-
-
 void print_pids( const list_t* pids, unsigned int count );
 void print_history( const list_t* history, unsigned int count );
 pid_t run_command( 
@@ -185,6 +183,25 @@ pid_t run_command(
     }
 
     print_history( history, count );
+  }
+  // change working directory
+  else if ( strcmp( action, "cd" ) == 0 )
+  {
+    const char* dir; 
+    char* arg = list_get( command->tokens, 1 );
+
+    // no arguments? send them home
+    if ( arg == NULL )
+    {
+      dir = getenv( "HOME" );
+    }
+    // otherwise, navigate to the given directory
+    else
+    {
+      dir = arg;
+    }
+
+    chdir( dir );
   }
   // check for binaries
   else
