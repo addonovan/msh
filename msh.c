@@ -59,8 +59,32 @@ int main()
       {
         unsigned int count = 10;
 
-        char* flag = list_get( command->tokens, 1 );
-        if ( pids->size < 10 || ( flag != NULL && strcmp( flag, "--all" ) ) )
+        char* arg0 = list_get( command->tokens, 1 );
+        char* arg1 = list_get( command->tokens, 2 );
+
+        if ( arg0 != NULL )
+        {
+          if ( strcmp( arg0, "--all" ) == 0
+            || strcmp( arg0, "-a" ) == 0 )
+          {
+            count = pids->size;
+          }
+          else if ( strcmp( arg0, "--count" ) == 0 
+                 || strcmp( arg0, "-c" ) == 0 )
+          {
+            if ( arg1 == NULL )
+            {
+              fprintf( stderr, "--count requires an integral option\n" );
+              continue;
+            }
+            else
+            {
+              count = strtol( arg1, NULL, 0 );
+            }
+          }
+        }
+
+        if ( pids->size < count )
         {
           count = pids->size;
         }
@@ -88,7 +112,7 @@ void print_pids( list_t* pids, unsigned int count )
   list_iter_jump( iter, start );
 
   printf( "Starting at %d\n", start );
-  printf( "Showing %d pids (of %d total)\n", count, pids->size );
+  printf( "Showing last %d pids (of %d total)\n", count, pids->size );
 
   int i;
   for ( i = 0; i < count; i++ )

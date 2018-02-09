@@ -70,8 +70,6 @@ command_t* command_read()
   }
 #undef BUFFER_SIZE
 
-  printf( "Token count: %d\n", this->tokens->size );
-
   return this;
 }
 
