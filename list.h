@@ -74,6 +74,11 @@ void* list_iter_peek( list_iter_t* );
 void* list_iter_pop( list_iter_t* );
 
 /**
+ * Progresses this iterator until the given index.
+ */
+void list_iter_skip_to( list_iter_t*, unsigned int index );
+
+/**
  * Destroys this list iterator.
  */
 void list_iter_free( list_iter_t* );

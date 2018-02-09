@@ -28,6 +28,7 @@ void list_push( list_t* this, void* item )
   else
   {
     this->tail->next = node;
+    this->tail = node;
   }
 
   this->size += 1;
@@ -51,6 +52,15 @@ void* list_get( list_t* this, int index )
 list_iter_t* list_iter( list_t* this )
 {
   return list_iter_create( this->head );
+}
+
+void list_iter_skip_to( list_iter_t* this, unsigned int index )
+{
+  while ( this->index < index )
+  {
+    this->current = this->current->next;
+    this->index += 1;
+  }
 }
 
 void list_free( list_t* this )
