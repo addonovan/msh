@@ -33,7 +33,7 @@
 
 #define WHITESPACE " \t\n"
 #define MAX_COMMAND_SIZE 255
-#define MAX_NUM_ARGUMENTS 5
+#define MAX_NUM_ARGUMENTS 10
 
 /**
  * A command type.
@@ -84,15 +84,18 @@ int main()
     command_t* command = command_read();
 
     // hard-coded actions
-    if ( strcmp( command->tokens[ 0 ], "quit" ) == 0
-      || strcmp( command->tokens[ 0 ], "exit" ) == 0 )
+    if ( command->token_count != 0 && command->tokens[ 0 ] != NULL )
     {
-      running = false;
-    }
-    // check for binaries
-    else
-    {
-      command_exec( command );
+      if ( strcmp( command->tokens[ 0 ], "quit" ) == 0
+        || strcmp( command->tokens[ 0 ], "exit" ) == 0 )
+      {
+        running = false;
+      }
+      // check for binaries
+      else
+      {
+        command_exec( command );
+      }
     }
 
     command_free( command );
