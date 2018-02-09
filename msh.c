@@ -40,14 +40,46 @@
 
 #define MAX_NUM_ARGUMENTS 5     // Mav shell only supports five arguments
 
+/**
+ * A command type.
+ */
 typedef struct command_t {
+  /** 
+   * The original string used to parse tokens (kept around for freeing)
+   */
   char* string;
+
+  /** The tokens of the command string. */
   char* tokens[ MAX_NUM_ARGUMENTS ];
+
+  /** The number of tokens found in this command. */
   unsigned int token_count;
 } command_t;
 
+/**
+ * Reads a new command from the user. This also prints out the shell's
+ * prompt.
+ *
+ * @return A new command structure.
+ */
 command_t* command_read();
+
+/**
+ * Frees a given command structure and its heap-allocated data.
+ *
+ * @param[this]
+ *      The command to free.
+ */
 void command_free( command_t* this );
+
+/**
+ * Tries to execute the given command.
+ *
+ * @param[this]
+ *      The command to execute.
+ * @return If the command was successfully found and executed.
+ */
+bool command_exec( command_t* this );
 
 int main()
 {
@@ -58,19 +90,24 @@ int main()
 
     // hard-coded actions
     if ( strcmp( command->tokens[ 0 ], "quit" ) == 0
-      || strcmp( command->tokens[ 0 ], "exit" ) )
+      || strcmp( command->tokens[ 0 ], "exit" ) == 0 )
     {
       running = false;
     }
     // check for binaries
     else
     {
+      command_exec( command );
     }
 
     command_free( command );
   }
   return 0;
 }
+
+//
+// command_* implementations
+//
 
 command_t* command_read()
 {
@@ -106,6 +143,32 @@ command_t* command_read()
   }
 
   return this;
+}
+
+bool command_exec( command_t* this )
+{
+  pid_t child_pid = fork();
+
+  if ( child_pid == -1 )
+  {
+    perror( "Failed to start child process " );
+  }
+  else if ( child_pid == 0 )
+  {
+    
+  }
+  else
+  {
+    printf( "Hello from parent: %d\n", child_pid );
+    int status;
+    waitpid( child_pid, &status, 0 );
+    if ( WIFSIGNALED( status ) )
+    {
+      printf( "Child exited with status %d\n", WTERMSIG( status ) );
+    }
+  }
+
+  return false;
 }
 
 void command_free( command_t* this )
