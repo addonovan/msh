@@ -12,38 +12,68 @@
 
 command_t* command_read()
 {
-#define WHITESPACE " \t\n"
   printf( "msh> " );
 
   command_t* this = malloc( sizeof( command_t ) );
   this->string = calloc( sizeof( char ), MAX_COMMAND_SIZE );
   this->tokens = list_create();
 
-  // Read the command from the commandline.  The
-  // maximum command that will be read is MAX_COMMAND_SIZE
-  // This while command will wait here until the user
-  // inputs something since fgets returns NULL when there
-  // is no input
-  while( !fgets( this->string, MAX_COMMAND_SIZE, stdin ) );
-  
-  // Pointer to point to the token
-  // parsed by strsep
-  char* arg_ptr;                                                      
-  char* working_str = this->string;
 
-  // Tokenize the input stringswith whitespace used as the delimiter
-  while ( ( arg_ptr = strsep( &working_str, WHITESPACE ) ) != NULL )
+#define BUFFER_SIZE 255
+  int length = 0; 
+  char buff[ BUFFER_SIZE ];
+  bool in_quote = false;
+
+  while ( !feof( stdin ) )
   {
-    // copy the token and append it if it isn't empty
-    char* token = strndup( arg_ptr, MAX_COMMAND_SIZE );
-    if ( strlen( token ) != 0 )
+    char c = getc( stdin );
+
+    // clear the buffer if we're on a new word
+    if ( length == 0 )
     {
-      list_push( this->tokens, ( void* ) token );
+      memset( buff, 0, BUFFER_SIZE );
+    }
+    else if ( length == BUFFER_SIZE - 1 )
+    {
+      fprintf( stderr, "Token starting with %s is too long\n", buff );
+      return NULL;
+    }
+
+    // capture everything between two (unescaped) quotes
+    if ( c == '"' )
+    {
+      // toggle the state
+      in_quote ^= true;
+    }
+    // whitespace denotes the end of a token (but only outside quotes)
+    else if ( !in_quote && c == ' ' || c == '\t' || c == '\n' || c == '\r' )
+    {
+      // allocate the word on the stack
+      char* word = calloc( sizeof( char ), length + 1 );
+      memcpy( word, buff, length );
+
+      // add the word to the list
+      list_push( this->tokens, ( void* ) word );
+
+      // if we found a newline, then that also means we end the line
+      if ( c == '\r' || c == '\n' )
+        break;
+
+      // reset the length to 0
+      length = 0;
+    }
+    // just add any other character onto the buffer
+    else
+    {
+      buff[ length ] = c;
+      length += 1;
     }
   }
+#undef BUFFER_SIZE
+
+  printf( "Token count: %d\n", this->tokens->size );
 
   return this;
-#undef WHITESPACE
 }
 
 bool command_exec( command_t* this )
