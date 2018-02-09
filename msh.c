@@ -24,6 +24,7 @@
 #define MAX_COMMAND_SIZE 255
 #define MAX_NUM_ARGUMENTS 10
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include "command.h"
@@ -37,10 +38,12 @@ int main()
     command_t* command = command_read();
 
     // hard-coded actions
-    if ( command->token_count != 0 && command->tokens[ 0 ] != NULL )
+    if ( command->tokens->size != 0 )
     {
-      if ( strcmp( command->tokens[ 0 ], "quit" ) == 0
-        || strcmp( command->tokens[ 0 ], "exit" ) == 0 )
+      char* action = list_get( command->tokens, 0 );
+
+      if ( strcmp( action, "quit" ) == 0
+        || strcmp( action, "exit" ) == 0 )
       {
         running = false;
       }

@@ -17,6 +17,7 @@ command_t* command_read()
 
   command_t* this = malloc( sizeof( command_t ) );
   this->string = calloc( sizeof( char ), MAX_COMMAND_SIZE );
+  this->tokens = list_create();
 
   // Read the command from the commandline.  The
   // maximum command that will be read is MAX_COMMAND_SIZE
@@ -24,8 +25,6 @@ command_t* command_read()
   // inputs something since fgets returns NULL when there
   // is no input
   while( !fgets( this->string, MAX_COMMAND_SIZE, stdin ) );
-
-  this->token_count = 0;
   
   // Pointer to point to the token
   // parsed by strsep
@@ -33,15 +32,14 @@ command_t* command_read()
   char* working_str = this->string;
 
   // Tokenize the input stringswith whitespace used as the delimiter
-  while ( ( ( arg_ptr = strsep( &working_str, WHITESPACE ) ) != NULL ) && 
-            ( this->token_count < MAX_NUM_ARGUMENTS ) )
+  while ( ( arg_ptr = strsep( &working_str, WHITESPACE ) ) != NULL )
   {
-    this->tokens[ this->token_count ] = strndup( arg_ptr, MAX_COMMAND_SIZE );
-    if( strlen( this->tokens[ this->token_count ] ) == 0 )
+    // copy the token and append it if it isn't empty
+    char* token = strndup( arg_ptr, MAX_COMMAND_SIZE );
+    if ( strlen( token ) != 0 )
     {
-      this->tokens[ this->token_count ] = NULL;
+      list_push( this->tokens, ( void* ) token );
     }
-    this->token_count++;
   }
 
   return this;
@@ -65,27 +63,26 @@ bool command_exec( command_t* this )
       "/usr/bin",
       "/bin"
     };
-    char* program_name = strdup( this->tokens[ 0 ] );
+    char* program_name = strdup( this->tokens->head->data );
     char* program_path = calloc( sizeof( char ), 16 + strlen( program_name ) ); 
 
     // create a NULL-terminated array from our tokens array if it
     // doesn't already have it (I noticed that it wouldn't be NULL terminated
     // if you used the max number of tokens)
-    char** args;
-    if ( this->tokens[ this->token_count ] != NULL )
+    char** args = calloc( sizeof( char* ), this->tokens->size + 1 );
     {
-      args = calloc( sizeof( char* ), this->token_count + 1 );
-      memcpy( args, this->tokens, sizeof( this->tokens ) );
-      this->tokens[ this->token_count + 1 ] = NULL;
-    }
-    else
-    {
-      args = this->tokens;
+      list_iter_t* iter = list_iter( this->tokens );
+
+      while ( list_iter_peek( iter ) != NULL )
+      {
+        args[ iter->index ] = ( char* ) list_iter_pop( iter );
+      }
+      args[ iter->index ] = NULL;
     }
     
     // the value of this may change, but it will always point to
     // the full path of the executable we're trying to run
-    this->tokens[ 0 ] = program_path;
+    args[ 0 ] = program_path;
 
     // try all of the search paths
     int i;

@@ -30,6 +30,11 @@ list_t* list_create();
 void list_push( list_t*, void* item );
 
 /**
+ * Gets the item at the index.
+ */
+void* list_get( list_t*, int index );
+
+/**
  * Returns an iterator for this list.
  */
 list_iter_t* list_iter( list_t* );
@@ -46,6 +51,7 @@ void list_free( list_t* );
 struct list_iter_t
 {
   list_node_t* current;
+  unsigned int index;
 };
 
 /**

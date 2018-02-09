@@ -5,7 +5,6 @@
 #include "list.h"
 
 #define MAX_COMMAND_SIZE 255
-#define MAX_NUM_ARGUMENTS 10
 
 /**
  * A command type.
@@ -16,12 +15,9 @@ typedef struct command_t {
    */
   char* string;
 
-  /** The tokens of the command string. */
-  // additional token to account for tokens[ 0 ] = executable name
-  char* tokens[ MAX_NUM_ARGUMENTS + 1 ];
+  /** A list of all of the tokens in this command */
+  list_t* tokens;
 
-  /** The number of tokens found in this command. */
-  unsigned int token_count;
 } command_t;
 
 /**

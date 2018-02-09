@@ -33,6 +33,21 @@ void list_push( list_t* this, void* item )
   this->size += 1;
 }
 
+void* list_get( list_t* this, int index )
+{
+  if ( index >= this->size ) return NULL;
+
+  list_node_t* current = this->head;
+
+  int i;
+  for ( i = 0; i < index; i++ )
+  {
+    current = current->next;
+  }
+
+  return current->data;
+}
+
 list_iter_t* list_iter( list_t* this )
 {
   return list_iter_create( this->head );
@@ -61,6 +76,7 @@ list_iter_t* list_iter_create( list_node_t* start )
   list_iter_t* this = malloc( sizeof( list_iter_t ) );
   
   this->current = start;
+  this->index = 0;
 
   return this;
 }
@@ -77,7 +93,10 @@ void* list_iter_pop( list_iter_t* this )
   if ( this->current == NULL ) return NULL;
   
   void* val = list_iter_peek( this );
+
   this->current = this->current->next;
+  this->index += 1;
+
   return val;
 }
 
@@ -102,7 +121,11 @@ list_node_t* list_node_create( void* data )
 
 void list_node_free( list_node_t* this )
 {
-  free( this->data );
+  if ( this->data != NULL )
+  {
+    free( this->data );
+  }
+
   free( this );
 }
 
