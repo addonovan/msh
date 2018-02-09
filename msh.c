@@ -150,20 +150,70 @@ bool command_exec( command_t* this )
   }
   else if ( child_pid == 0 )
   {
+#define SEARCH_PATH_COUNT 4
+    char* search_paths[ SEARCH_PATH_COUNT ] = {
+      ".",
+      "/usr/local/bin",
+      "/usr/bin",
+      "/bin"
+    };
+    char* program_name = this->tokens[ 0 ];
+    char* program_path = calloc( sizeof( char ), 16 + strlen( program_name ) ); 
+
+    // copy all of the arguments (except for the program name)
+    // into a new array for us to pass to the 
+    char** args = malloc( sizeof( char* ) * ( this->token_count + 1 )  );
     
+    args[ 0 ] = program_path; // value will change but always at same place
+    int i;
+    for ( i = 1; i < this->token_count && this->tokens[ i ] != NULL; i++ )
+    {
+      args[ i ] = strdup( this->tokens[ i ] );
+    }
+    args[ i ] = NULL;
+
+
+    // try all of the search paths
+    for ( i = 0; i < SEARCH_PATH_COUNT; i++ )
+    {
+      sprintf( program_path, "%s/%s", search_paths[ i ], program_name );
+      execv( program_path, args );
+    }
+
+    // I could deallocate the strdup'd tokens, but at this point
+    // we're literally just going to suicide, so the OS can clean up
+    // our memory
+    exit( 1 );
+
+#undef SEARCH_PATH_COUNT
   }
   else
   {
-    printf( "Hello from parent: %d\n", child_pid );
     int status;
-    waitpid( child_pid, &status, 0 );
+    if ( waitpid( child_pid, &status, 0 ) == -1 )
+    {
+      printf( "Failed to wait for child!\n" );
+    }
+
     if ( WIFSIGNALED( status ) )
     {
-      printf( "Child exited with status %d\n", WTERMSIG( status ) );
+      int exit_signal = WTERMSIG( status );
+      printf( "[%d] exited by signal %d\n", child_pid, exit_signal );
+    }
+
+    // if we received a non-zero exit code, that means bad, so tell
+    // the user that the program exitted incorrectly
+    if ( WIFEXITED( status ) )
+    {
+      int exit_status = WEXITSTATUS( status );
+      if ( exit_status != 0 )
+      {
+        printf( "[%d] exited with status %d\n", child_pid, exit_status );
+      }  
     }
   }
 
-  return false;
+  return true;
 }
 
 void command_free( command_t* this )
