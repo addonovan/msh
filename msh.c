@@ -32,6 +32,7 @@
 #include "handlers.h"
 
 pid_t g_current_pid = ( pid_t ) 0;
+list_t* g_backgrounded = NULL;
 
 pid_t run_command( 
     const list_t* pids, 
@@ -69,21 +70,41 @@ int main()
           continue;
         }
       }
-
-      // store the command in our history for later use
-      list_push( history, command );
-
-      pid_t* pid = malloc( sizeof( pid_t ) );
-      *pid = run_command( pids, history, command );
-      g_current_pid = *pid;
-
-      if ( *pid == 0 )
+      else if ( strcmp( action, "fg" ) == 0 )
       {
-        free( pid );
+        if ( g_bg_pid == 0 )
+        {
+          printf( "No stopped jobs\n" );
+          g_current_pid = 0;
+        }
+        else
+        {
+          printf( "sending sigcont (pid = %d)...\n", g_bg_pid );
+          fflush( stdout );
+          kill( g_bg_pid, SIGCONT );
+          command_free( command );
+
+          g_current_pid = g_bg_pid;
+          g_bg_pid = 0;
+        }
       }
       else
       {
-        list_push( pids, ( void* ) pid );
+        // store the command in our history for later use
+        list_push( history, command );
+
+        pid_t* pid = malloc( sizeof( pid_t ) );
+        *pid = run_command( pids, history, command );
+        g_current_pid = *pid;
+
+        if ( *pid == 0 )
+        {
+          free( pid );
+        }
+        else
+        {
+          list_push( pids, ( void* ) pid );
+        }
       }
 
       wait_child();
@@ -99,6 +120,9 @@ int main()
 
 void wait_child()
 {
+  if ( g_current_pid == 0 )
+    return;
+
   int status;
   waitpid( g_current_pid, &status, 0 );
 
@@ -128,7 +152,14 @@ void handle_sig( int signal )
   switch ( signal )
   {
     case SIGINT:
+      printf( "forwarding sigint\n" );
       kill( g_current_pid, SIGINT );
+      break;
+
+    case SIGTSTP:
+      printf( "forwarding sigtstp\n" );
+      kill( g_current_pid, SIGTSTP );
+      g_bg_pid = g_current_pid;
       break;
   }
 }

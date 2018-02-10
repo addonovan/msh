@@ -15,6 +15,13 @@ handler_t* handler_create( void ( *handler )( int ) )
     free( this );
     return NULL;
   }
+  
+  if ( sigaction( SIGTSTP, &this->action, NULL ) < 0 )
+  {
+    perror( "sigaction: " );
+    free( this );
+    return NULL;
+  }
 
   return this;
 }
