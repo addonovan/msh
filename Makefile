@@ -1,24 +1,20 @@
-override CFLAGS += -Wall -Werror -pedantic
+PRODUCT := msh
+BINDIR := bin
+INCDIR := include
+SRCDIR := src
+OBJDIR := obj
 
-# running it from make will actually cause make
-# to be the parent process, and thus it will
-# be suspended if you send SIGTSTP, which kinda
-# interferes with the program.
-# run: msh
-# 	./msh
+CC := gcc
+LINKER := gcc
+INCDIRS := -I$(INCDIR)
+CFLAGS := -Wall -Werror -pedantic
 
-msh: msh.c *.h command list built_in handlers
-	$(CC) $(CFLAGS) -g msh.c *.o -o msh
+SRCFILES := $(wildcard $(SRCDIR)/*.c)
+OBJFILES := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCFILES))
 
-command: command.c *.h
-	$(CC) $(CFLAGS) -g -c command.c
+$(BINDIR)/$(PRODUCT): $(OBJFILES)
+	$(LINKER) $(CFLAGS) $^ -o $@
 
-list: list.c *.h
-	$(CC) $(CFLAGS) -g -c list.c
-
-built_in: built_in.c *.h
-	$(CC) $(CFLAGS) -g -c built_in.c
-
-handlers: handlers.c *.h
-	$(CC) $(CFLAGS) -g -c handlers.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) $(INDIRS) -c $< -o $@
 
