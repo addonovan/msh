@@ -30,6 +30,11 @@ list_t* list_create();
 void list_push( list_t*, void* item );
 
 /**
+ * Removes the list item from the list, and returns it's value.
+ */
+void* list_pop( list_t* );
+
+/**
  * Gets the item at the index.
  */
 void* list_get( const list_t*, unsigned int index );

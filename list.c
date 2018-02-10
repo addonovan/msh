@@ -35,6 +35,25 @@ void list_push( list_t* this, void* item )
   this->size += 1;
 }
 
+void* list_pop( list_t* this )
+{
+  if ( this->size == 0 ) return NULL;
+
+  list_node_t* node = this->tail;
+  
+  // save a pointer to the data first
+  void* data = node->data;
+
+  // prevent data from being freed by list_node_free( node )
+  node->data = NULL;
+
+  // finally, delete the list_node_t
+  this->head = node->prev;
+  list_node_free( node );
+
+  return data;
+}
+
 void* list_get( const list_t* this, unsigned int index )
 {
   if ( index >= this->size ) return NULL;
@@ -67,15 +86,12 @@ void list_iter_jump( list_iter_t* this, unsigned int steps )
 
 void list_free( list_t* this )
 {
-  list_node_t* prev;
-  list_node_t* current = this->head;
-  while ( current != NULL )
+  // list_node_free will maintain the list's linkage
+  while ( this->head->next != NULL )
   {
-    prev = current;
-    current = current->next;
-    list_node_free( prev );
+    list_node_free( this->head->next );
   }
-  
+  list_node_free( this->head );
   free( this );
 }
 
@@ -137,6 +153,16 @@ void list_node_free( list_node_t* this )
   if ( this->data != NULL )
   {
     free( this->data );
+  }
+
+  // preserve the overall linkage of the list
+  if ( this->prev != NULL )
+  {
+    this->prev->next = this->next;
+  }
+  if ( this->next != NULL )
+  {
+    this->next->prev = this->prev;
   }
 
   free( this );
