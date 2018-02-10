@@ -16,5 +16,5 @@ $(BINDIR)/$(PRODUCT): $(OBJFILES)
 	$(LINKER) $(CFLAGS) $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) $(INDIRS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
