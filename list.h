@@ -31,6 +31,8 @@ void list_push( list_t*, void* item );
 
 /**
  * Removes the list item from the list, and returns it's value.
+ * The item will no longer be owned by this list, and thus you
+ * must remember to free it manually.
  */
 void* list_pop( list_t* );
 
