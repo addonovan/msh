@@ -1,3 +1,8 @@
+/*
+ * Name: Austin Donovan
+ * Id:   1001311620
+ */
+
 #ifndef MSH_LIST_H
 #define MSH_LIST_H
 
@@ -9,6 +14,13 @@ typedef struct list_iter_t list_iter_t;
 // list
 //
 
+/**
+ * A list structure.
+ *
+ * While this is intended to be abstract enough such that
+ * the implementation doesn't matter, it is actually a 
+ * linked list (because those are pretty easy to implement)
+ */
 struct list_t
 {
   list_node_t* head;
@@ -55,6 +67,10 @@ void list_free( list_t* );
 // list_iter
 //
 
+/**
+ * A structure for iterating over a list starting at a
+ * given position.
+ */
 struct list_iter_t
 {
   list_node_t* current;
@@ -94,6 +110,9 @@ void list_iter_free( list_iter_t* );
 // list_node
 //
 
+/**
+ * An actual node in the linked list.
+ */
 struct list_node_t 
 {
   void* data;

@@ -1,3 +1,8 @@
+/*
+ * Name: Austin Donovan
+ * Id:   1001311620
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -41,7 +46,18 @@ command_t* get_history_item(
     index = offset + strtol( action + 1, NULL, 0 );
   }
 
-  return ( command_t* ) list_get( history, index );
+  // make a new copy of the item
+  command_t* item = ( command_t* ) list_get( history, index );
+  if ( item != NULL )
+  {
+    command_t* copy = malloc( sizeof( command_t* ) );
+    memcpy( copy, item, sizeof( command_t ) );
+    return copy;
+  }
+  else
+  {
+    return NULL;
+  }
 } 
 
 command_t* built_in_run_history( 

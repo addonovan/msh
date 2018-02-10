@@ -1,24 +1,7 @@
-// The MIT License (MIT)
-// 
-// Copyright (c) 2016, 2017 Trevor Bakker 
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+/*
+ * Name: Austin Donovan
+ * Id:   1001311620
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,17 +14,33 @@
 #include "built_in.h"
 #include "handlers.h"
 
+/** The pid of the currently-running foreground child process. */
 pid_t g_current_pid = ( pid_t ) 0;
+
+/** A global list of all process currently suspended */
 list_t* g_backgrounded = NULL;
 
+/**
+ * Runs the specified [command], using the list of [pids],
+ * and the command [history], and returns the pid of the
+ * created process, if any; otherwise, it returns 0
+ */
 pid_t run_command( 
     const list_t* pids, 
     const list_t* history, 
     const command_t* command 
 );
 
+/**
+ * The system signal handler. Listens for SIGTSTP and SIGINT
+ * and forwards them to the child process.
+ */
 static void handle_sig( int signal );
 
+/**
+ * Waits for the currently running foreground child
+ * (whose pid is stored in g_current_pid).
+ */
 void wait_child();
 
 int main()
@@ -51,66 +50,59 @@ int main()
   list_t* pids = list_create(); 
   list_t* history = list_create();
 
+  g_backgrounded = list_create();
+
   while( true )
   {
+    // make sure all of the output is written before continuing
+    fflush( stderr );
+    fflush( stdout );
+
     command_t* command = command_read();
 
-    if ( command->tokens->size != 0 )
+    // don't do anything on an empty command (except delete it)
+    if ( command->tokens->size == 0 )
     {
-      // history-relative options get expanded before they're placed
-      // in the history
-      char* action = list_get( command->tokens, 0 );
-      if ( action[ 0 ] == '!' )
-      {
-        // if the command didn't resolve correctly, then skip the rest
-        // of the iteration
-        if ( ( command = built_in_run_history( command, history ) ) == NULL )
-        {
-          fprintf( stderr, "Command not in history.\n" );
-          continue;
-        }
-      }
-      else if ( strcmp( action, "fg" ) == 0 )
-      {
-        if ( g_bg_pid == 0 )
-        {
-          printf( "No stopped jobs\n" );
-          g_current_pid = 0;
-        }
-        else
-        {
-          printf( "sending sigcont (pid = %d)...\n", g_bg_pid );
-          fflush( stdout );
-          kill( g_bg_pid, SIGCONT );
-          command_free( command );
+      command_free( command );
+      continue;
+    }
 
-          g_current_pid = g_bg_pid;
-          g_bg_pid = 0;
-        }
+    // history-relative options get expanded before they're placed
+    // in the history
+    char* action = list_get( command->tokens, 0 );
+    if ( action[ 0 ] == '!' )
+    {
+      // if the command didn't resolve correctly, then skip the rest
+      // of the iteration
+      if ( ( command = built_in_run_history( command, history ) ) == NULL )
+      {
+        fprintf( stderr, "Command not in history.\n" );
+        continue;
+      }
+    }
+    else
+    {
+      // store the command in our history for later use
+      list_push( history, command );
+
+      pid_t* pid = malloc( sizeof( pid_t ) );
+      *pid = run_command( pids, history, command );
+      g_current_pid = *pid;
+
+      if ( *pid == 0 )
+      {
+        free( pid );
       }
       else
       {
-        // store the command in our history for later use
-        list_push( history, command );
-
-        pid_t* pid = malloc( sizeof( pid_t ) );
-        *pid = run_command( pids, history, command );
-        g_current_pid = *pid;
-
-        if ( *pid == 0 )
-        {
-          free( pid );
-        }
-        else
-        {
-          list_push( pids, ( void* ) pid );
-        }
+        list_push( pids, ( void* ) pid );
       }
-
-      wait_child();
     }
+
+    wait_child();
   }
 
+  // free our locally-allocated lists
   list_free( pids );
   list_free( history );
   handler_free( handler );
@@ -152,14 +144,19 @@ void handle_sig( int signal )
   switch ( signal )
   {
     case SIGINT:
-      printf( "forwarding sigint\n" );
       kill( g_current_pid, SIGINT );
       break;
 
     case SIGTSTP:
-      printf( "forwarding sigtstp\n" );
       kill( g_current_pid, SIGTSTP );
-      g_bg_pid = g_current_pid;
+
+      // add its pid to the list of backgrounded processes
+      pid_t* new_pid = malloc( sizeof( pid_t ) );
+      *new_pid = g_current_pid;
+      list_push( g_backgrounded, new_pid );
+
+      // \r overwrites the ^Z
+      printf( "\r[%d]  + %d suspended\n", g_backgrounded->size, *new_pid );
       break;
   }
 }
@@ -177,6 +174,35 @@ pid_t run_command(
     || strcmp( action, "exit" ) == 0 )
   {
     exit( 0 );
+  }
+  else if ( strcmp( action, "fg" ) == 0
+         || strcmp( action, "bg" ) == 0 )
+  {
+    if ( g_backgrounded->size == 0 )
+    {
+      printf( "No stopped jobs\n" );
+      return ( pid_t ) 0;
+    }
+    else
+    {
+      // get the last item from the backgrounded list, then
+      // move it into the stack instead of the heap (because
+      // we take ownership over any item returned from 
+      // list_pop)
+      pid_t stack;
+      pid_t* pid = ( pid_t* ) list_pop( g_backgrounded );
+      stack = *pid;
+      free( pid );
+
+      // tell the process to continue
+      kill( stack, SIGCONT );
+      printf( "[%d]  - %d continued\n", g_backgrounded->size + 1, stack ); 
+
+      // if we're running the task in the background, then
+      // we shouldn't return a pid, because the main loop will
+      // wait on any non-zero pid we return from here.
+      return strcmp( action, "bg" ) == 0 ? ( pid_t ) 0 : stack;
+    }
   }
   // show process ids?
   else if ( strcmp( action, "showpids" ) == 0 )
