@@ -14,6 +14,16 @@
 #include "built_in.h"
 #include "handlers.h"
 
+// text colors:
+#define KNRM "\x1B[0m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
+
 /** The pid of the currently-running foreground child process. */
 pid_t g_current_pid = ( pid_t ) 0;
 
@@ -55,7 +65,6 @@ int main()
   while( true )
   {
     // make sure all of the output is written before continuing
-    fflush( stderr );
     fflush( stdout );
 
     command_t* command = command_read();
@@ -76,7 +85,7 @@ int main()
       // of the iteration
       if ( ( command = built_in_run_history( command, history ) ) == NULL )
       {
-        fprintf( stderr, "Command not in history.\n" );
+        printf( KRED "Command not in history.\n" KNRM );
         continue;
       }
     }
@@ -121,7 +130,9 @@ void wait_child()
   if ( WIFSIGNALED( status ) )
   {
     int exit_signal = WTERMSIG( status );
-    printf( "[%d] exited by signal %d\n", g_current_pid, exit_signal );
+    char* exit_text = strsignal( exit_signal );
+
+    printf( KRED "! [%d] killed by %s\n" KNRM, g_current_pid, exit_text );
   }
 
   // if we received a non-zero exit code, that means bad, so tell
@@ -131,7 +142,9 @@ void wait_child()
     int exit_status = WEXITSTATUS( status );
     if ( exit_status != 0 )
     {
-      printf( "X[%d] ", exit_status );
+      // print a red bang before the next shell line
+      // (denotes non-zero exit code)
+      printf( KRED "! " KNRM );
     }  
   }
 }

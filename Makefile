@@ -1,7 +1,11 @@
 override CFLAGS += -Wall -Werror -pedantic
 
-run: msh
-	./msh
+# running it from make will actually cause make
+# to be the parent process, and thus it will
+# be suspended if you send SIGTSTP, which kinda
+# interferes with the program.
+# run: msh
+# 	./msh
 
 msh: msh.c *.h command list built_in handlers
 	$(CC) $(CFLAGS) -g msh.c *.o -o msh
