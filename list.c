@@ -51,6 +51,9 @@ void* list_pop( list_t* this )
   this->head = node->prev;
   list_node_free( node );
 
+  // actually decrease the size of the list
+  this->size -= 1;
+
   return data;
 }
 
