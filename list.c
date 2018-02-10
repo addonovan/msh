@@ -28,19 +28,20 @@ void list_push( list_t* this, void* item )
   else
   {
     this->tail->next = node;
+    node->prev = this->tail;
     this->tail = node;
   }
 
   this->size += 1;
 }
 
-void* list_get( const list_t* this, int index )
+void* list_get( const list_t* this, unsigned int index )
 {
   if ( index >= this->size ) return NULL;
 
   list_node_t* current = this->head;
 
-  int i;
+  unsigned int i;
   for ( i = 0; i < index; i++ )
   {
     current = current->next;
@@ -125,6 +126,7 @@ list_node_t* list_node_create( void* data )
   list_node_t* this = malloc( sizeof( list_node_t ) );
 
   this->next = NULL;
+  this->prev = NULL;
   this->data = data;
 
   return this;

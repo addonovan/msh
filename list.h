@@ -32,7 +32,7 @@ void list_push( list_t*, void* item );
 /**
  * Gets the item at the index.
  */
-void* list_get( const list_t*, int index );
+void* list_get( const list_t*, unsigned int index );
 
 /**
  * Returns an iterator for this list.
@@ -91,6 +91,7 @@ struct list_node_t
 {
   void* data;
   list_node_t* next;
+  list_node_t* prev;
 };
 
 /**
