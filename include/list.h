@@ -28,7 +28,7 @@ struct list_node_t
  * Creates a new list node, which has the given [data], but
  * has no following item.
  */
-list_node_t list_node_init( list_node_t*, void* data );
+void list_node_init( list_node_t*, void* data );
 
 void list_node_destroy( list_node_t* );
 
@@ -54,7 +54,7 @@ struct list_t
 /**
  * Initializes the given list.
  */
-list_t* list_init( list_t* );
+void list_init( list_t* );
 
 /**
  * Deallocates this list and all of its data.
