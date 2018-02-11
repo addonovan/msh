@@ -169,7 +169,7 @@ pid_t shell_resume( shell_t* this )
   free( raw );
 
   // notify the user
-  printf( "[%d]  - continued%d\n", this->background_pids.size + 1, pid );
+  printf( "[%d]  - %d continued\n", this->background_pids.size + 1, pid );
 
   // tell the process to resume
   kill( pid, SIGCONT );
@@ -188,11 +188,17 @@ void shell_wait( shell_t* this )
   waitpid( this->current_pid, &status, 0 );
 
   // if the program died by signal, print the signal
+  // (but don't print the ^Z and resume signals, those
+  // aren't what we're looking for)
   if ( WIFSIGNALED( status ) )
   {
-    const char* signal_text = strsignal( WTERMSIG( status ) );
+    int signal = WTERMSIG( status );
+    if ( signal != SIGTSTP && signal != SIGCONT )
+    {
+      const char* signal_text = strsignal( signal );
 
-    printf( KRED "! [%d] %s\n" KNRM, this->current_pid, signal_text );
+      printf( KRED "! [%d] %s\n" KNRM, this->current_pid, signal_text );
+    }
   }
 
   // if the program emmitted a non-zero exit code
