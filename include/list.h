@@ -11,6 +11,28 @@ typedef struct list_node_t list_node_t;
 typedef struct list_iter_t list_iter_t;
 
 //
+// list_node
+//
+
+/**
+ * An actual node in the linked list.
+ */
+struct list_node_t 
+{
+  void* data;
+  list_node_t* next;
+  list_node_t* prev;
+};
+
+/**
+ * Creates a new list node, which has the given [data], but
+ * has no following item.
+ */
+void list_node_init( list_node_t*, void* data );
+
+void list_node_destroy( list_node_t* );
+
+//
 // list
 //
 
@@ -30,9 +52,14 @@ struct list_t
 };
 
 /**
- * Creates a new list on the heap
+ * Initializes the given list.
  */
-list_t* list_create();
+void list_init( list_t* );
+
+/**
+ * Deallocates this list and all of its data.
+ */
+void list_destroy( list_t* );
 
 /**
  * Pushes a new [item] onto the back of this list.
@@ -53,15 +80,6 @@ void* list_pop( list_t* );
  */
 void* list_get( const list_t*, unsigned int index );
 
-/**
- * Returns an iterator for this list.
- */
-list_iter_t* list_iter( const list_t* );
-
-/**
- * Deallocates this list and all of its data.
- */
-void list_free( list_t* );
 
 //
 // list_iter
@@ -78,9 +96,13 @@ struct list_iter_t
 };
 
 /**
- * Creates an iterator starting at the given node.
+ * Creates a new list_iter for the given [list].
+ *
+ * This structure will exist on the stack and owns
+ * no memory, so it can safely drop off the stack
+ * with no memory leaks.
  */
-list_iter_t* list_iter_create( list_node_t* start );
+list_iter_t list_iter_create( const list_t* list );
 
 /**
  * Returns the value at the current position, but won't 
@@ -100,36 +122,6 @@ void* list_iter_pop( list_iter_t* );
  * Skips exactly [steps] elements ahead, if possible.
  */
 void list_iter_jump( list_iter_t*, unsigned int steps );
-
-/**
- * Destroys this list iterator.
- */
-void list_iter_free( list_iter_t* );
-
-//
-// list_node
-//
-
-/**
- * An actual node in the linked list.
- */
-struct list_node_t 
-{
-  void* data;
-  list_node_t* next;
-  list_node_t* prev;
-};
-
-/**
- * Creates a new list node, which has the given [data], but
- * has no following item.
- */
-list_node_t* list_node_create( void* data );
-
-/**
- * Destroys this list node and it's data.
- */
-void list_node_free( list_node_t* );
 
 #endif
 
