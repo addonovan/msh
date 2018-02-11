@@ -145,7 +145,7 @@ void shell_suspend( shell_t* this )
   *pid = this->current_pid;
   list_push( &this->background_pids, pid );
 
-  // tell the user
+  // tell the user (\r to cover up the ^Z)
   printf( "\r[%d]  + %d suspended\n", this->background_pids.size, *pid );
 
   this->current_pid = 0;
@@ -184,7 +184,7 @@ void shell_wait( shell_t* this )
   if ( this->current_pid == 0 ) return;
 
   // wait until the process exits
-  int status;
+  int status = 0;
   waitpid( this->current_pid, &status, 0 );
 
   // this means that the process was suspended
@@ -198,7 +198,9 @@ void shell_wait( shell_t* this )
     int signal = WTERMSIG( status );
     const char* signal_text = strsignal( signal );
 
-    printf( KRED "! " );
+    // tell the user the pid, the signal text, and the signal value
+    // (\r to cover up a possible ^C)
+    printf( KRED "\r! " );
     printf( "[%d] %s (%d)", this->current_pid, signal_text, signal );
     printf( KNRM "\n" );
   }
