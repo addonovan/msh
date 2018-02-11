@@ -10,6 +10,8 @@ typedef struct list_t list_t;
 typedef struct list_node_t list_node_t;
 typedef struct list_iter_t list_iter_t;
 
+typedef void ( destructor )( void* );
+
 //
 // list_node
 //
@@ -45,16 +47,26 @@ void list_node_destroy( list_node_t* );
  */
 struct list_t
 {
+  /** The first element of this list */
   list_node_t* head;
+
+  /** The last element of this list. */
   list_node_t* tail;
 
+  /** The destructor to run when destroying the list. */
+  destructor* destructor;
+
+  /** The number of elements in this list. */
   unsigned int size;
 };
 
 /**
- * Initializes the given list.
+ * Initializes the given list. When an item is destroyed, its
+ * data will be passed through the [destructor], before being
+ * free()d. If the item has no destructor (such as a primitive
+ * on the heap), NULL can be passed instead.
  */
-void list_init( list_t* );
+void list_init( list_t*, destructor* destructor );
 
 /**
  * Deallocates this list and all of its data.

@@ -36,17 +36,28 @@ void list_node_destroy( list_node_t* this )
 // list
 //
 
-void list_init( list_t* this )
+void list_init( list_t* this, destructor* destructor )
 {
   this->head = NULL;
   this->tail = NULL;
   this->size = 0;
+  this->destructor = destructor;
 }
 
 void list_destroy( list_t* this )
 {
-  // TODO clean up all of the leaked memory here
-  while ( list_pop( this ) != NULL );  
+  void* data; 
+  while ( ( data = list_pop( this ) ) != NULL )
+  {
+    // call the applicable destructor for the item
+    if ( this->destructor != NULL )
+    {
+      this->destructor( data );
+    }
+
+    // then just free it from the heap
+    free( data );
+  }
 }
 
 void list_push( list_t* this, void* item )

@@ -16,7 +16,7 @@
 void command_init( command_t* this )
 {
   this->string = NULL;
-  list_init( &this->tokens );
+  list_init( &this->tokens, NULL );
 }
 
 void command_destroy( command_t* this )
@@ -32,7 +32,7 @@ void command_read( command_t* this )
   list_t* tokens = &this->tokens;
 
   // temporary list of all the characters in the string
-  list_t* string = new( list );
+  list_t* string = new( list, NULL );
 
 #define BUFFER_SIZE 255
   int length = 0; 
