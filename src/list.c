@@ -88,9 +88,6 @@ void* list_pop( list_t* this )
   // save a pointer to the data first
   void* data = node->data;
 
-  // prevent data from being deleted by list_node_destroy( node )
-  node->data = NULL;
-
   // finally, delete the list_node_t
   this->tail = node->prev;
   delete( list_node, node );

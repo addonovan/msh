@@ -11,6 +11,7 @@
 
 void handler_init( handler_t* this, void ( *sig_handler )( int ) )
 {
+  memset( &this->action, 0, sizeof( this->action ) );
   this->action.sa_handler = sig_handler;
 
   if ( sigaction( SIGINT, &this->action, NULL ) < 0 )
