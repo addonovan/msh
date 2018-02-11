@@ -153,7 +153,7 @@ pid_t command_exec( const command_t* this )
       execv( program_path, args );
     }
 
-    fprintf( stderr, "%s: Command Not Found\n", program_name );
+    printf( "%s: command not found\n", program_name );
 
     // I could deallocate the strdup'd tokens, but at this point
     // we're literally just going to suicide, so the OS can clean up

@@ -213,7 +213,15 @@ bool shell_run_command( shell_t* this, command_t* command )
   // finally try to run the command by searching paths
   else if ( !shell_run_bi( this, command ) )
   {
-    command_exec( command );
+    // set the currently running process (in case a signal arrives,
+    // so the correct process will receive it)
+    this->current_pid = command_exec( command );
+
+    // wait for the spawned process to exit
+    shell_wait( this );
+
+    // we are no longer running a process
+    this->current_pid = ( pid_t ) 0;
   }
 
   return true;  
@@ -232,22 +240,27 @@ bool shell_run_bi( shell_t* this, const command_t* command )
   if ( strcmp( name, "cd" ) == 0 )
   {
     shell_bi_cd( this, command );
+    return true;
   }
   else if ( strcmp( name, "pwd" ) == 0 )
   {
     shell_bi_pwd( this, command );
+    return true;
   }
   else if ( strcmp( name, "history" ) == 0 )
   {
     shell_bi_history( this, command );
+    return true;
   }
   else if ( strcmp( name, "showpids" ) == 0 )
   {
     shell_bi_showpids( this, command );
+    return true;
   }
   else if ( name[ 0 ] == '!' )
   {
     shell_bi_run_history( this, command );
+    return true;
   }
 
   // couldn't find a command, so oh well

@@ -45,14 +45,8 @@ void list_init( list_t* this )
 
 void list_destroy( list_t* this )
 {
-  // list_node_free will maintain the list's linkage
-  while ( this->head->next != NULL )
-  {
-    list_node_destroy( this->head->next );
-    free( this->head->next );
-  }
-  list_node_destroy( this->head );
-  free( this->head );
+  // TODO clean up all of the leaked memory here
+  while ( list_pop( this ) != NULL );  
 }
 
 void list_push( list_t* this, void* item )
@@ -87,8 +81,7 @@ void* list_pop( list_t* this )
   node->data = NULL;
 
   // finally, delete the list_node_t
-  this->head = node->prev;
-
+  this->tail = node->prev;
   delete( list_node, node );
 
   // actually decrease the size of the list

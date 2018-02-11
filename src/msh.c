@@ -23,6 +23,8 @@ int main()
   command_t* command = NULL;
   do
   {
+    fflush( stdout );
+
     command = new( command );
     command_read( command );
   }
