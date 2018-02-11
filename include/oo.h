@@ -24,6 +24,12 @@
   })                                                    \
 
 
+/**
+ * Basically, a virtual copy constructor. It will
+ * allocoate the correct amount of memory on the heap
+ * for the new object, then perform a memcpy to make
+ * a direct copy of the old value.
+ */
 #define copy( src ) ({                                  \
     unsigned int size = sizeof( *src );                 \
     void* x = malloc( size );                           \

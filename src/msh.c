@@ -13,6 +13,7 @@
 #include "shell.h"
 #include "oo.h"
 
+
 int main()
 {
   shell_t* shell = new( shell );
@@ -23,6 +24,7 @@ int main()
   command_t* command = NULL;
   do
   {
+    shell_wait( shell );
     fflush( stdout );
 
     command = new( command );

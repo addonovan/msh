@@ -66,10 +66,9 @@ pid_t shell_resume( shell_t* );
 
 /**
  * Causes the thread to block, waiting for the
- * [current_pid] to stop. The process's exit
- * status will be returned.
+ * [current_pid] to stop.
  */
-int shell_wait( shell_t* );
+void shell_wait( shell_t* );
 
 /**
  * Runs the command on the given shell.

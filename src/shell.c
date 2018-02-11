@@ -11,6 +11,16 @@
 #include "shell.h"
 #include "oo.h"
 
+// terminal colors
+#define KNRM "\x1B[0m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
+
 //
 // Static
 //
@@ -167,17 +177,32 @@ pid_t shell_resume( shell_t* this )
   return pid;
 }
 
-int shell_wait( shell_t* this )
+void shell_wait( shell_t* this )
 {
   // if we don't have an active process, then just don't
   // do anything
-  if ( this->current_pid == 0 ) return 0;
+  if ( this->current_pid == 0 ) return;
 
   // wait until the process exits
   int status;
   waitpid( this->current_pid, &status, 0 );
 
-  return status;
+  // if the program died by signal, print the signal
+  if ( WIFSIGNALED( status ) )
+  {
+    const char* signal_text = strsignal( WTERMSIG( status ) );
+
+    printf( KRED "! [%d] %s\n" KNRM, this->current_pid, signal_text );
+  }
+
+  // if the program emmitted a non-zero exit code
+  if ( WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
+  {
+    printf( KRED "! " KNRM );
+  }
+
+  // child process is now dead
+  this->current_pid = ( pid_t ) 0;
 }
 
 bool shell_run_command( shell_t* this, command_t* command )
@@ -202,7 +227,6 @@ bool shell_run_command( shell_t* this, command_t* command )
     // foreground process (i.e. wait for it)
     pid_t pid = shell_resume( this );
     this->current_pid = pid;
-    shell_wait( this );
   }
   else if ( strcmp( name, "bg" ) == 0 )
   {
@@ -219,12 +243,6 @@ bool shell_run_command( shell_t* this, command_t* command )
     *pid = command_exec( command );
     this->current_pid = *pid;
     list_push( &this->pid_history, pid );
-
-    // wait for the spawned process to exit
-    shell_wait( this );
-
-    // we are no longer running a process
-    this->current_pid = ( pid_t ) 0;
   }
 
   return true;  
@@ -419,6 +437,8 @@ void shell_bi_run_history( shell_t* this, const command_t* command )
   list_iter_t iter = list_iter_create( &this->cmd_history );
   list_iter_jump( &iter, index );
 
+  // TODO perform a deep-copy of the memory, so the lists
+  // don't reference the same items
   command_t* newcmd = copy( ( command_t* ) list_iter_pop( &iter ) );
 
   // remove the most recent command (i.e. the one that got us
