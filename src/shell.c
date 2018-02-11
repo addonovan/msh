@@ -403,7 +403,14 @@ void shell_bi_run_history( shell_t* this, const command_t* command )
   else
   {
     // start at the 15th-to-last item
-    index = this->cmd_history.size - 16;
+    if ( this->cmd_history.size <= 15 )
+    {
+      index = 0;
+    }
+    else
+    {
+      index = this->cmd_history.size - 16;
+    }
 
     // then add our offset from the user
     index += strtol( name + 1, NULL, 0 );
@@ -413,6 +420,12 @@ void shell_bi_run_history( shell_t* this, const command_t* command )
   list_iter_jump( &iter, index );
 
   command_t* newcmd = copy( ( command_t* ) list_iter_pop( &iter ) );
+
+  // remove the most recent command (i.e. the one that got us
+  // here) from the command history, so it will be replaced
+  // by the actual item that was run
+  command_t* oldcmd = list_pop( &this->cmd_history );
+  delete( command, oldcmd );
 
   // (indirectly) recursively let this new command be executed
   shell_run_command( this, newcmd );
