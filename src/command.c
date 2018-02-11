@@ -16,13 +16,13 @@
 void command_init( command_t* this )
 {
   this->string = NULL;
-  list_init( &this->tokens, NULL );
+  list_init( &this->tokens );
 }
 
 void command_destroy( command_t* this )
 {
   free( this->string );
-  list_destroy( &this->tokens );
+  list_destroy( &this->tokens, NULL );
   memset( this, 0, sizeof( *this ) );
 }
 
@@ -33,7 +33,7 @@ void command_read( command_t* this )
   list_t* tokens = &this->tokens;
 
   // temporary list of all the characters in the string
-  list_t* string = new( list, NULL );
+  list_t* string = new( list );
 
 #define BUFFER_SIZE 255
   int length = 0; 
@@ -96,11 +96,15 @@ void command_read( command_t* this )
 
   // consolidate string into a single char*
   this->string = calloc( string->size + 1, sizeof( char ) );
+
   list_iter_t iter = list_iter_create( string );
   while ( list_iter_peek( &iter ) != NULL )
   {
     this->string[ iter.index ] = *( char* ) list_iter_pop( &iter );
   }
+
+  // delete the char list
+  delete( list, string, NULL );
 }
 
 const char* command_get_name( const command_t* this )

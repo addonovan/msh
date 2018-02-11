@@ -46,10 +46,10 @@
  * invokes `free` on [x], and sets [x] to 
  * `NULL`.
  */
-#define delete( type, x )                               \
+#define delete( type, x, ... )                          \
   do                                                    \
   {                                                     \
-    type ## _destroy( x );                              \
+    type ## _destroy( x, ##__VA_ARGS__ );               \
     free( x );                                          \
     x = NULL;                                           \
   }                                                     \

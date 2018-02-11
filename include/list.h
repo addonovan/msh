@@ -53,25 +53,22 @@ struct list_t
   /** The last element of this list. */
   list_node_t* tail;
 
-  /** The destructor to run when destroying the list. */
-  destructor* destructor;
-
   /** The number of elements in this list. */
   unsigned int size;
 };
 
 /**
- * Initializes the given list. When an item is destroyed, its
- * data will be passed through the [destructor], before being
- * free()d. If the item has no destructor (such as a primitive
- * on the heap), NULL can be passed instead.
+ * Initializes the given list.
  */
-void list_init( list_t*, destructor* destructor );
+void list_init( list_t* );
 
 /**
- * Deallocates this list and all of its data.
+ * Deallocates this list and all of its data. When an item is 
+ * destroyed, its data will be passed through the [destructor], 
+ * before being free()d. If the item has no destructor (such 
+ * as a primitive on the heap), NULL can be passed instead.
  */
-void list_destroy( list_t* );
+void list_destroy( list_t* this, destructor* destructor );
 
 /**
  * Pushes a new [item] onto the back of this list.

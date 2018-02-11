@@ -100,9 +100,9 @@ void shell_bi_run_history( shell_t*, const command_t* command );
 
 void shell_init( shell_t* this )
 {
-  list_init( &this->cmd_history, (destructor*) &command_destroy ); 
-  list_init( &this->pid_history, NULL );
-  list_init( &this->background_pids, NULL );
+  list_init( &this->cmd_history ); 
+  list_init( &this->pid_history );
+  list_init( &this->background_pids );
 
   this->current_pid = ( pid_t ) 0;
 
@@ -111,9 +111,9 @@ void shell_init( shell_t* this )
 
 void shell_destroy( shell_t* this )
 {
-  list_destroy( &this->cmd_history ); 
-  list_destroy( &this->pid_history );
-  list_destroy( &this->background_pids );
+  list_destroy( &this->background_pids, NULL );
+  list_destroy( &this->pid_history, NULL );
+  list_destroy( &this->cmd_history, ( destructor* ) &command_destroy ); 
 
   this->current_pid = ( pid_t ) 0;
 
