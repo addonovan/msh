@@ -215,7 +215,10 @@ bool shell_run_command( shell_t* this, command_t* command )
   {
     // set the currently running process (in case a signal arrives,
     // so the correct process will receive it)
-    this->current_pid = command_exec( command );
+    pid_t* pid = malloc( sizeof( pid_t ) );
+    *pid = command_exec( command );
+    this->current_pid = *pid;
+    list_push( &this->pid_history, pid );
 
     // wait for the spawned process to exit
     shell_wait( this );
@@ -375,8 +378,8 @@ void shell_bi_showpids( const shell_t* this, const command_t* command )
   unsigned int i;
   for ( i = 0; i < count; i++ )
   {
-    command_t* command = list_iter_pop( &iter );
-    printf( "%d: %s\n", i, command->string );
+    pid_t* pid = list_iter_pop( &iter );
+    printf( "%d: %d\n", i, *pid );
   }
 }
 
