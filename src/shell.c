@@ -351,7 +351,7 @@ void shell_bi_history( const shell_t* this, const command_t* command )
   unsigned int count = get_print_count( 15, command, &this->cmd_history );
 
   // jump ahead to the first element we should print
-  list_iter_t iter = list_iter_create( &command->tokens );
+  list_iter_t iter = list_iter_create( &this->cmd_history );
   list_iter_jump( &iter, this->cmd_history.size - count );
 
   // actually print out the history item
@@ -368,7 +368,7 @@ void shell_bi_showpids( const shell_t* this, const command_t* command )
   unsigned int count = get_print_count( 10, command, &this->pid_history );
 
   // jump ahead to the first element we should print
-  list_iter_t iter = list_iter_create( &command->tokens );
+  list_iter_t iter = list_iter_create( &this->pid_history );
   list_iter_jump( &iter, this->pid_history.size - count );
 
   // actually print out the history item
