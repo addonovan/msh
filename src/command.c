@@ -63,7 +63,7 @@ void command_read( command_t* this )
     else if ( !in_quote && ( c == ' ' || c == '\t' || c == '\n' || c == '\r' ) )
     {
       // allocate the word on the stack
-      char* word = calloc( sizeof( char ), length + 1 );
+      char* word = calloc( length + 1, sizeof( char ) );
       memcpy( word, buff, length );
 
       // add the word to the list
@@ -94,7 +94,7 @@ void command_read( command_t* this )
 #undef BUFFER_SIZE
 
   // consolidate string into a single char*
-  this->string = calloc( sizeof( char ), string->size + 1 );
+  this->string = calloc( string->size + 1, sizeof( char ) );
   list_iter_t iter = list_iter_create( string );
   while ( list_iter_peek( &iter ) != NULL )
   {
@@ -124,13 +124,13 @@ pid_t command_exec( const command_t* this )
       "/usr/bin",
       "/bin"
     };
-    char* program_name = strdup( this->tokens.head->data );
-    char* program_path = calloc( sizeof( char ), 16 + strlen( program_name ) ); 
+    const char* name = command_get_name( this );
+    char* program_path = calloc( 16 + strlen( name ), sizeof( char )); 
 
     // create a NULL-terminated array from our tokens array if it
     // doesn't already have it (I noticed that it wouldn't be NULL terminated
     // if you used the max number of tokens)
-    char** args = calloc( sizeof( char* ), this->tokens.size + 1 );
+    char** args = calloc( this->tokens.size + 1, sizeof( char* ) );
     {
       list_iter_t iter = list_iter_create( &this->tokens );
 
@@ -149,11 +149,11 @@ pid_t command_exec( const command_t* this )
     int i;
     for ( i = 0; i < SEARCH_PATH_COUNT; i++ )
     {
-      sprintf( program_path, "%s/%s", search_paths[ i ], program_name );
+      sprintf( program_path, "%s/%s", search_paths[ i ], name );
       execv( program_path, args );
     }
 
-    printf( "%s: command not found\n", program_name );
+    printf( "%s: command not found\n", name );
 
     // I could deallocate the strdup'd tokens, but at this point
     // we're literally just going to suicide, so the OS can clean up
