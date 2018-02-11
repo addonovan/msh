@@ -10,6 +10,17 @@
 #include "built_in.h"
 #include "list.h"
 #include "command.h"
+#include "oo.h"
+
+command_t* built_in_run( command_t* command )
+{
+  // segfault for now
+  int* a = NULL;
+  *a = 42;
+
+  // we couldn't find anything, so just hand the command back
+  return command;
+}
 
 //
 // !!, !<n>, and !+<n>
@@ -65,7 +76,7 @@ command_t* built_in_run_history(
     const list_t* history 
 )
 {
-  char* action = list_get( command->tokens, 0 );
+  char* action = list_get( &command->tokens, 0 );
   command_t* prev = NULL;
 
   // run the last command
@@ -79,7 +90,7 @@ command_t* built_in_run_history(
   }
 
   // this command has out-lived its usefulness
-  command_free( command );
+  delete( command, command );
 
   return prev;
 }
@@ -94,26 +105,24 @@ command_t* built_in_run_history(
 void print_pids( const list_t* pids, unsigned int count )
 {
   unsigned int start = pids->size - count;
-  list_iter_t* iter = list_iter( pids );
-  list_iter_jump( iter, start );
+  list_iter_t iter = list_iter( pids );
+  list_iter_jump( &iter, start );
 
   printf( "Showing last %d pids (of %d total)\n", count, pids->size );
 
   unsigned int i;
   for ( i = 0; i < count; i++ )
   {
-    printf( "%d: %d\n", i, *( ( pid_t* ) list_iter_pop( iter ) ) );
+    printf( "%d: %d\n", i, *( ( pid_t* ) list_iter_pop( &iter ) ) );
   }
-
-  list_iter_free( iter );
 }
 
 void built_in_showpids( const command_t* command, const list_t* pids )
 {
   unsigned int count = 10;
 
-  char* arg0 = list_get( command->tokens, 1 );
-  char* arg1 = list_get( command->tokens, 2 );
+  char* arg0 = list_get( &command->tokens, 1 );
+  char* arg1 = list_get( &command->tokens, 2 );
 
   if ( arg0 != NULL )
   {
@@ -156,19 +165,17 @@ void built_in_showpids( const command_t* command, const list_t* pids )
 void print_history( const list_t* history, unsigned int count )
 {
   unsigned int start = history->size - count;
-  list_iter_t* iter = list_iter( history );
-  list_iter_jump( iter, start );
+  list_iter_t iter = list_iter( history );
+  list_iter_jump( &iter, start );
 
   printf( "Showing last %d commands (of %d total)\n", count, history->size );
 
   unsigned int i;
   for ( i = 0; i < count; i++ )
   {
-    command_t* command = list_iter_pop( iter );
+    command_t* command = list_iter_pop( &iter );
     printf( "%d: %s\n", i, command->string );
   }
-
-  list_iter_free( iter );
 }
 
 void built_in_history( const command_t* command, const list_t* history )
@@ -192,7 +199,7 @@ void built_in_history( const command_t* command, const list_t* history )
 void built_in_cd( const command_t* command )
 {
   char* dir; 
-  char* arg = list_get( command->tokens, 1 );
+  char* arg = list_get( &command->tokens, 1 );
 
   // no arguments? send them home
   if ( arg == NULL )
