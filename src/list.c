@@ -58,6 +58,8 @@ void list_destroy( list_t* this )
     // then just free it from the heap
     free( data );
   }
+
+  memset( this, 0, sizeof( *this ) );
 }
 
 void list_push( list_t* this, void* item )

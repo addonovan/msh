@@ -27,6 +27,7 @@ void handler_init( handler_t* this, void ( *sig_handler )( int ) )
 
 void handler_destroy( handler_t* this )
 {
+  memset( this, 0, sizeof( *this ) );
   // TODO unregister for signal handlers
 }
 

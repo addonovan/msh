@@ -23,6 +23,7 @@ void command_destroy( command_t* this )
 {
   free( this->string );
   list_destroy( &this->tokens );
+  memset( this, 0, sizeof( *this ) );
 }
 
 void command_read( command_t* this )

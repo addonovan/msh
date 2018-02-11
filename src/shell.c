@@ -125,6 +125,8 @@ void shell_destroy( shell_t* this )
   {
     g_active_shell = NULL;
   }
+  
+  memset( this, 0, sizeof( *this ) );
 }
 
 void shell_set_active( const shell_t* this )
@@ -419,7 +421,8 @@ void shell_bi_run_history( shell_t* this, const command_t* command )
   // !! => last item
   if ( strcmp( name, "!!" ) == 0 )
   {
-    index = this->cmd_history.size - 1;
+    // our !! is at the last index, so we remove another 1
+    index = this->cmd_history.size - 2;
   }
   // !+<num> => absolute offset
   else if ( name[ 1 ] == '+' )
