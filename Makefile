@@ -7,7 +7,7 @@ OBJDIR := obj
 CC := gcc
 LINKER := gcc
 INCDIRS := -I$(INCDIR)
-CFLAGS := -Wall -Werror -g
+CFLAGS := -Wall -Werror -g3
 
 SRCFILES := $(wildcard $(SRCDIR)/*.c)
 OBJFILES := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCFILES))

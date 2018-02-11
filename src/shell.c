@@ -187,22 +187,23 @@ void shell_wait( shell_t* this )
   int status;
   waitpid( this->current_pid, &status, 0 );
 
+  // this means that the process was suspended
+  if ( this->current_pid == 0 ) return;
+
   // if the program died by signal, print the signal
   // (but don't print the ^Z and resume signals, those
   // aren't what we're looking for)
   if ( WIFSIGNALED( status ) )
   {
     int signal = WTERMSIG( status );
-    if ( signal != SIGTSTP && signal != SIGCONT )
-    {
-      const char* signal_text = strsignal( signal );
+    const char* signal_text = strsignal( signal );
 
-      printf( KRED "! [%d] %s\n" KNRM, this->current_pid, signal_text );
-    }
+    printf( KRED "! " );
+    printf( "[%d] %s (%d)", this->current_pid, signal_text, signal );
+    printf( KNRM "\n" );
   }
-
   // if the program emmitted a non-zero exit code
-  if ( WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
+  else if ( WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
   {
     printf( KRED "! " KNRM );
   }
