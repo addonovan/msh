@@ -11,17 +11,17 @@
 #include <string.h>
 #include <signal.h>
 #include "command.h"
+#include "oo.h"
 
-
-command_t* command_read()
+void command_read( command_t* this )
 {
   printf( "msh> " );
 
-  command_t* this = malloc( sizeof( command_t ) );
-  this->tokens = list_create();
+  list_t* tokens = &this->tokens;
+  list_init( tokens );
 
   // temporary list of all the characters in the string
-  list_t* string = list_create();
+  list_t* string = new( list_t );
 
 #define BUFFER_SIZE 255
   int length = 0; 
@@ -39,8 +39,7 @@ command_t* command_read()
     }
     else if ( length == BUFFER_SIZE - 1 )
     {
-      fprintf( stderr, "Token starting with %s is too long\n", buff );
-      return NULL;
+      printf( "Token starting with %s is too long\n", buff );
     }
 
     // capture everything between two (unescaped) quotes
@@ -57,7 +56,7 @@ command_t* command_read()
       memcpy( word, buff, length );
 
       // add the word to the list
-      list_push( this->tokens, ( void* ) word );
+      list_push( tokens, ( void* ) word );
 
       // reset the length to 0
       length = 0;
@@ -85,15 +84,16 @@ command_t* command_read()
 
   // consolidate string into a single char*
   this->string = calloc( sizeof( char ), string->size + 1 );
-  list_iter_t* iter = list_iter( string );
-  while ( list_iter_peek( iter ) != NULL )
+  list_iter_t iter = list_iter( string );
+  while ( list_iter_peek( &iter ) != NULL )
   {
-    this->string[ iter->index ] = *( char* ) list_iter_pop( iter );
+    this->string[ iter.index ] = *( char* ) list_iter_pop( &iter );
   }
-  list_iter_free( iter );
-  list_free( string );
+}
 
-  return this;
+void command_destroy( command_t* this )
+{
+  free( this->string );
 }
 
 pid_t command_exec( const command_t* this )
@@ -113,21 +113,21 @@ pid_t command_exec( const command_t* this )
       "/usr/bin",
       "/bin"
     };
-    char* program_name = strdup( this->tokens->head->data );
+    char* program_name = strdup( this->tokens.head->data );
     char* program_path = calloc( sizeof( char ), 16 + strlen( program_name ) ); 
 
     // create a NULL-terminated array from our tokens array if it
     // doesn't already have it (I noticed that it wouldn't be NULL terminated
     // if you used the max number of tokens)
-    char** args = calloc( sizeof( char* ), this->tokens->size + 1 );
+    char** args = calloc( sizeof( char* ), this->tokens.size + 1 );
     {
-      list_iter_t* iter = list_iter( this->tokens );
+      list_iter_t iter = list_iter( &this->tokens );
 
-      while ( list_iter_peek( iter ) != NULL )
+      while ( list_iter_peek( &iter ) != NULL )
       {
-        args[ iter->index ] = ( char* ) list_iter_pop( iter );
+        args[ iter.index ] = ( char* ) list_iter_pop( &iter );
       }
-      args[ iter->index ] = NULL;
+      args[ iter.index ] = NULL;
     }
     
     // the value of this may change, but it will always point to
@@ -153,12 +153,6 @@ pid_t command_exec( const command_t* this )
   }
 
   return child_pid;
-}
-
-void command_free( command_t* this )
-{
-  free( this->string );
-  free( this );
 }
 
 
