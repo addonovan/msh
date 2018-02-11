@@ -45,8 +45,8 @@ void list_node_destroy( list_node_t* );
  */
 struct list_t
 {
-  list_node_t head;
-  list_node_t tail;
+  list_node_t* head;
+  list_node_t* tail;
 
   unsigned int size;
 };

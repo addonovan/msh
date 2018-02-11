@@ -4,26 +4,60 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include "list.h"
+#include "oo.h"
+
+//
+// list_node
+//
+
+void list_node_init( list_node_t* this, void* data )
+{
+  this->next = NULL;
+  this->prev = NULL;
+  this->data = data;
+}
+
+void list_node_destroy( list_node_t* this )
+{
+  // preserve the overall linkage of the list
+  if ( this->prev != NULL )
+  {
+    this->prev->next = this->next;
+  }
+  if ( this->next != NULL )
+  {
+    this->next->prev = this->prev;
+  }
+}
 
 // 
 // list
 //
 
-list_t* list_create()
+void list_init( list_t* this )
 {
-  list_t* this = malloc( sizeof( list_t ) );
-
   this->head = NULL;
   this->tail = NULL;
   this->size = 0;
+}
 
-  return this;
+void list_destroy( list_t* this )
+{
+  // list_node_free will maintain the list's linkage
+  while ( this->head->next != NULL )
+  {
+    list_node_destroy( this->head->next );
+    free( this->head->next );
+  }
+  list_node_destroy( this->head );
+  free( this->head );
 }
 
 void list_push( list_t* this, void* item )
 {
-  list_node_t* node = list_node_create( item );
+  list_node_t* node = new( list_node, item );
 
   if ( this->tail == NULL ) // => this->head == NULL also
   {
@@ -54,7 +88,8 @@ void* list_pop( list_t* this )
 
   // finally, delete the list_node_t
   this->head = node->prev;
-  list_node_free( node );
+
+  delete( list_node, node );
 
   // actually decrease the size of the list
   this->size -= 1;
@@ -77,9 +112,9 @@ void* list_get( const list_t* this, unsigned int index )
   return current->data;
 }
 
-list_iter_t* list_iter( const list_t* this )
+list_iter_t list_iter( const list_t* this )
 {
-  return list_iter_create( this->head );
+  return list_iter_create( this );
 }
 
 void list_iter_jump( list_iter_t* this, unsigned int steps )
@@ -92,28 +127,15 @@ void list_iter_jump( list_iter_t* this, unsigned int steps )
   }
 }
 
-void list_free( list_t* this )
-{
-  // list_node_free will maintain the list's linkage
-  while ( this->head->next != NULL )
-  {
-    list_node_free( this->head->next );
-  }
-  list_node_free( this->head );
-  free( this );
-}
-
 //
 // list_iter
 //
 
-list_iter_t* list_iter_create( list_node_t* start )
+list_iter_t list_iter_create( const list_t* list )
 {
-  list_iter_t* this = malloc( sizeof( list_iter_t ) );
-  
-  this->current = start;
-  this->index = 0;
-
+  list_iter_t this;
+  this.current = list->head;
+  this.index = 0;
   return this;
 }
 
@@ -134,45 +156,5 @@ void* list_iter_pop( list_iter_t* this )
   this->index += 1;
 
   return val;
-}
-
-void list_iter_free( list_iter_t* this )
-{
-  free( this );
-}
-
-//
-// list_node
-//
-
-list_node_t* list_node_create( void* data )
-{
-  list_node_t* this = malloc( sizeof( list_node_t ) );
-
-  this->next = NULL;
-  this->prev = NULL;
-  this->data = data;
-
-  return this;
-}
-
-void list_node_free( list_node_t* this )
-{
-  if ( this->data != NULL )
-  {
-    free( this->data );
-  }
-
-  // preserve the overall linkage of the list
-  if ( this->prev != NULL )
-  {
-    this->prev->next = this->next;
-  }
-  if ( this->next != NULL )
-  {
-    this->next->prev = this->prev;
-  }
-
-  free( this );
 }
 
