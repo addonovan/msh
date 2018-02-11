@@ -21,7 +21,7 @@ void command_read( command_t* this )
   list_init( tokens );
 
   // temporary list of all the characters in the string
-  list_t* string = new( list_t );
+  list_t* string = new( list );
 
 #define BUFFER_SIZE 255
   int length = 0; 

@@ -55,9 +55,13 @@ void wait_child();
 
 int main()
 {
+  handle_sig( 0 );
+  wait_child();
+  run_command( NULL, NULL, NULL );
+  /*
   handler_t* handler = handler_create( &handle_sig );
 
-  list_t* pids = list_create(); 
+  list_t* pids = list_create();
   list_t* history = list_create();
 
   g_backgrounded = list_create();
@@ -115,6 +119,7 @@ int main()
   list_free( pids );
   list_free( history );
   handler_free( handler );
+  */
 
   return 0;
 }
@@ -180,6 +185,7 @@ pid_t run_command(
     const command_t* command 
 )
 {
+  /*
   char* action = list_get( command->tokens, 0 );
 
   // should we exit?
@@ -243,6 +249,7 @@ pid_t run_command(
     return command_exec( command );
   }
 
+  */
   return ( pid_t ) 0;
 }
 
