@@ -26,12 +26,12 @@ struct handler_t
  * Creates a signal handler using the given [handler]
  * pointer as the callback.
  */
-handler_t* handler_create( void ( *handler )( int ) );
+void handler_init( handler_t*, void ( *sig_handler )( int ) );
 
 /**
  * Frees the given handler from memory.
  */
-void handler_free( handler_t* );
+void handler_destroy( handler_t* );
 
 #endif
 

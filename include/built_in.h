@@ -10,6 +10,19 @@
 #include "list.h"
 
 /**
+ * Attempts to perform the built-in [command], provided one
+ * exists.
+ * 
+ * This will take ownership over [command].
+ *
+ * This will return an owned command to be executed (e.g.
+ * no built-in command found, or to run a historical item),
+ * otherwise it will return NULL to signify that no action
+ * should be taken.
+ */
+command_t* built_in_run( command_t* command );
+
+/**
  * Grabs the specified command from the history list.
  * This will take ownership over the current command, then
  * return an owned copy of the new command to execute, which

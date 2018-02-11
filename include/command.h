@@ -14,13 +14,12 @@
  * A command type.
  */
 typedef struct command_t {
-  /** 
-   * The original string used to parse tokens (kept around for freeing)
-   */
+  
+  /** The string entered by the user */
   char* string;
 
   /** A list of all of the tokens in this command */
-  list_t* tokens;
+  list_t tokens;
 
 } command_t;
 
@@ -28,18 +27,21 @@ typedef struct command_t {
  * Reads a new command from the user. This also prints out the shell's
  * prompt.
  */
-command_t* command_read();
+void command_read( command_t* );
 
 /**
- * Frees this command structure and its heap-allocated data.
+ * Deletes the data allocated for this command structure,
+ * so it can be freed or drop out of scope, without any
+ * memory leaks.
  */
-void command_free( command_t* );
+void command_destroy( command_t* );
 
 /**
  * Tries to execute the given command. This will return the pid of the
  * child process which ran (or is running).
  */
 pid_t command_exec( const command_t* );
+
 
 #endif
 
