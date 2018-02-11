@@ -13,7 +13,6 @@
 #include "shell.h"
 #include "oo.h"
 
-
 int main()
 {
   shell_t* shell = new( shell );
