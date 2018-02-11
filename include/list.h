@@ -80,11 +80,6 @@ void* list_pop( list_t* );
  */
 void* list_get( const list_t*, unsigned int index );
 
-/**
- * Returns an iterator for this list.
- */
-list_iter_t list_iter( const list_t* );
-
 
 //
 // list_iter

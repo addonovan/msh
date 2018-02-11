@@ -24,6 +24,15 @@
   })                                                    \
 
 
+#define copy( src ) ({                                  \
+    unsigned int size = sizeof( *src );                 \
+    void* x = malloc( size );                           \
+    memcpy( x, src, size );                             \
+    x;                                                  \
+  })                                                    \
+                                                        \
+                                                        \
+
 /** 
  * Similar to c++'s delete keyword. Destroys
  * the value at the pointer, [x], using the

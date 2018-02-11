@@ -112,11 +112,6 @@ void* list_get( const list_t* this, unsigned int index )
   return current->data;
 }
 
-list_iter_t list_iter( const list_t* this )
-{
-  return list_iter_create( this );
-}
-
 void list_iter_jump( list_iter_t* this, unsigned int steps )
 {
   unsigned int target = this->index + steps;

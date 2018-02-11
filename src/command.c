@@ -13,12 +13,23 @@
 #include "command.h"
 #include "oo.h"
 
+void command_init( command_t* this )
+{
+  this->string = NULL;
+  list_init( &this->tokens );
+}
+
+void command_destroy( command_t* this )
+{
+  free( this->string );
+  list_destroy( &this->tokens );
+}
+
 void command_read( command_t* this )
 {
   printf( "msh> " );
 
   list_t* tokens = &this->tokens;
-  list_init( tokens );
 
   // temporary list of all the characters in the string
   list_t* string = new( list );
@@ -84,16 +95,16 @@ void command_read( command_t* this )
 
   // consolidate string into a single char*
   this->string = calloc( sizeof( char ), string->size + 1 );
-  list_iter_t iter = list_iter( string );
+  list_iter_t iter = list_iter_create( string );
   while ( list_iter_peek( &iter ) != NULL )
   {
     this->string[ iter.index ] = *( char* ) list_iter_pop( &iter );
   }
 }
 
-void command_destroy( command_t* this )
+const char* command_get_name( const command_t* this )
 {
-  free( this->string );
+  return ( const char* ) list_get( &this->tokens, 0 );
 }
 
 pid_t command_exec( const command_t* this )
@@ -121,7 +132,7 @@ pid_t command_exec( const command_t* this )
     // if you used the max number of tokens)
     char** args = calloc( sizeof( char* ), this->tokens.size + 1 );
     {
-      list_iter_t iter = list_iter( &this->tokens );
+      list_iter_t iter = list_iter_create( &this->tokens );
 
       while ( list_iter_peek( &iter ) != NULL )
       {

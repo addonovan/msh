@@ -24,7 +24,7 @@ struct shell_t
   /** A list of all pids running in the background */
   list_t background_pids;
 
-  /** The pid the shell is currently running. */
+  /** The pid for the current foreground process (or zero for none). */
   pid_t current_pid;
 
   /** The signal handler, for SIGTSTP and SIGINT */
@@ -41,14 +41,45 @@ void shell_init( shell_t* );
  * the shell can be freed (if it's on the heap), or
  * fall out of scope, without any memory leaks.
  */
-void shell_delete( shell_t* );
+void shell_destroy( shell_t* );
 
 /**
  * Marks the given shell as the "active" shell, such
  * that static methods (such as the signal handler)
  * will refer to its data.
  */
-void shell_set_active( shell_t* );
+void shell_set_active( const shell_t* );
+
+/**
+ * Suspends the current foreground process for this
+ * shell.
+ */
+void shell_suspend( shell_t* );
+
+/**
+ * Resumes the last process the shell suspended, only
+ * if it is not currently running any process in the
+ * foreground. This will then return the pid of the
+ * resumed process.
+ */
+pid_t shell_resume( shell_t* );
+
+/**
+ * Causes the thread to block, waiting for the
+ * [current_pid] to stop. The process's exit
+ * status will be returned.
+ */
+int shell_wait( shell_t* );
+
+/**
+ * Runs the command on the given shell.
+ * If the command causes a process to be run, then
+ * the [current_pid] will be updated.
+ *
+ * This will return [false] if the shell session
+ * should terminate.
+ */
+bool shell_run_command( shell_t*, command_t* command );
 
 #endif
 

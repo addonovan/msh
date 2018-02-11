@@ -24,6 +24,11 @@ typedef struct command_t {
 } command_t;
 
 /**
+ * Initializes a command.
+ */
+void command_init( command_t* );
+
+/**
  * Reads a new command from the user. This also prints out the shell's
  * prompt.
  */
@@ -35,6 +40,13 @@ void command_read( command_t* );
  * memory leaks.
  */
 void command_destroy( command_t* );
+
+/**
+ * Gets an immutable pointer to the first token of this
+ * command (or NULL if none exist). This only borrows
+ * the value, it does not transfer ownership.
+ */
+const char* command_get_name( const command_t* );
 
 /**
  * Tries to execute the given command. This will return the pid of the
