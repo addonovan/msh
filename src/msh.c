@@ -6,11 +6,11 @@
 #include <stdio.h>
 #include "command.h"
 #include "shell.h"
-#include "oo.h"
 
 int main()
 {
-  shell_t* shell = new( shell );
+  shell_t* shell = malloc( sizeof( *shell ) );
+  shell_init( shell );
 
   // never have to worry about deleting the command,a
   // as its ownership is passed off into the shell
@@ -21,11 +21,13 @@ int main()
     shell_wait( shell );
     fflush( stdout );
 
-    command = new( command );
+    command = malloc( sizeof( *command ) );
+    command_init( command );
     command_read( command );
   }
   while ( shell_run_command( shell, command ) );
 
-  delete( shell, shell );
+  shell_destroy( shell );
+  free( shell );
 }
 

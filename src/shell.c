@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 #include <stdbool.h>
 #include "shell.h"
-#include "oo.h"
+#include "clib/memory.h"
 
 // terminal colors
 #define KNRM "\x1B[0m"
@@ -100,9 +100,9 @@ void shell_bi_run_history( shell_t*, const command_t* command );
 
 void shell_init( shell_t* this )
 {
-  list_init( &this->cmd_history ); 
-  list_init( &this->pid_history );
-  list_init( &this->background_pids );
+  this->cmd_history = list_u(command_t);
+  this->pid_history = list_u(pid_t);
+  this->background_pids = list_u(pid_t);
 
   this->current_pid = ( pid_t ) 0;
 
@@ -111,9 +111,9 @@ void shell_init( shell_t* this )
 
 void shell_destroy( shell_t* this )
 {
-  list_destroy( &this->cmd_history ); 
-  list_destroy( &this->pid_history );
-  list_destroy( &this->background_pids );
+  delete( this->cmd_history );
+  delete( this->pid_history );
+  delete( this->background_pids );
 
   this->current_pid = ( pid_t ) 0;
 
@@ -141,35 +141,28 @@ void shell_suspend( shell_t* this )
   kill( this->current_pid, SIGTSTP );
 
   // push it onto the stack of waiting processes
-  pid_t* pid = malloc( sizeof( pid_t ) );
-  *pid = this->current_pid;
-  list_push( &this->background_pids, pid );
+  pid_t pid = this->current_pid;
+  this->background_pids->fun->push( this->background_pids, pid );
 
   // tell the user
-  printf( "\r[%d]  + %d suspended\n", this->background_pids.size, *pid );
+  printf( "\r[%d]  + %d suspended\n", this->background_pids->size, pid );
 
   this->current_pid = 0;
 }
 
 pid_t shell_resume( shell_t* this )
 {
-  // get the last pid from our list
-  pid_t* raw = list_pop( &this->background_pids );
-
-  // no suspended jobs? tell the user, but then stop
-  if ( raw == NULL )
+  if ( this->background_pids->size == 0 )
   {
     printf( "No stopped jobs\n" );
     return ( pid_t ) 0;
   }
 
-  pid_t pid = *raw;
-  
-  // we took ownership of the pid, so we have to free it
-  free( raw );
+  unsigned int size = this->background_pids->size;
+  pid_t pid = this->background_pids->fun->pop( this->background_pids );
 
   // notify the user
-  printf( "[%d]  - continued%d\n", this->background_pids.size + 1, pid );
+  printf( "[%d]  - continued%d\n", size + 1, pid );
 
   // tell the process to resume
   kill( pid, SIGCONT );
@@ -212,7 +205,7 @@ bool shell_run_command( shell_t* this, command_t* command )
   if ( this->current_pid != 0 ) return true;
 
   // add the command to our history
-  list_push( &this->cmd_history, command );
+  this->cmd_history->fun->enqueue( this->cmd_history, command );
 
   const char* name = command_get_name( command );   
 
@@ -239,10 +232,9 @@ bool shell_run_command( shell_t* this, command_t* command )
   {
     // set the currently running process (in case a signal arrives,
     // so the correct process will receive it)
-    pid_t* pid = malloc( sizeof( pid_t ) );
-    *pid = command_exec( command );
-    this->current_pid = *pid;
-    list_push( &this->pid_history, pid );
+    pid_t pid = command_exec( command );
+    this->current_pid = pid;
+    this->pid_history->fun->enqueue( this->pid_history, pid );
   }
 
   return true;  
@@ -293,18 +285,15 @@ void shell_bi_cd( const shell_t* this, const command_t* command )
   // unused, just here for symmetry
   ( void )( this );
 
-  char* dir; 
-  char* arg = list_get( &command->tokens, 1 );
+  const char* dir; 
 
-  // no arguments? send them home
-  if ( arg == NULL )
+  if ( command->tokens->size < 2 )
   {
     dir = getenv( "HOME" );
   }
-  // otherwise, navigate to the given directory
   else
   {
-    dir = arg;
+    dir = command->tokens->fun->get( command->tokens, 1 );
   }
 
   chdir( dir );
@@ -327,77 +316,45 @@ void shell_bi_pwd( const shell_t* this, const command_t* command )
   }
 }
 
-unsigned int get_print_count( 
-    unsigned int default_value,
-    const command_t* command, 
-    const list_t* list 
-)
-{
-  unsigned int count = default_value;
-
-  list_iter_t iter = list_iter_create( &command->tokens );
-  list_iter_jump( &iter, 1 );
-
-  // parse arguments
-  const char* param;
-  while ( ( param = list_iter_pop( &iter ) ) != NULL )
-  {
-    if ( strcmp( param, "--all" ) == 0
-      || strcmp( param, "-a" ) == 0 )
-    {
-      count = list->size;
-    }
-    else if ( strcmp( param, "--count" ) == 0
-           || strcmp( param, "-c" ) == 0 )
-    {
-      param = list_iter_pop( &iter );
-      if ( param == NULL ) return 0;
-
-      count = strtol( param, NULL, 0 );
-      if ( count <= 0 ) return 0;
-    }
-  }
-
-  // make sure we don't go into negative offsets
-  if ( count > list->size )
-  {
-    count = list->size;
-  }
-
-  return count;
-}
-
 void shell_bi_history( const shell_t* this, const command_t* command )
 {
-  unsigned int count = get_print_count( 15, command, &this->cmd_history );
+  unsigned int count = 15;
+
+  if ( this->cmd_history->size < count )
+  {
+    count = this->cmd_history->size;
+  }
 
   // jump ahead to the first element we should print
-  list_iter_t iter = list_iter_create( &this->cmd_history );
-  list_iter_jump( &iter, this->cmd_history.size - count );
+  unsigned int index = this->cmd_history->size - count;
 
-  // actually print out the history item
-  unsigned int i;
-  for ( i = 0; i < count; i++ )
+  typeof( this->cmd_history->fun->get ) get = this->cmd_history->fun->get;
+
+  for ( ; index < this->cmd_history->size; index++ )
   {
-    command_t* command = list_iter_pop( &iter );
-    printf( "%d: %s\n", i, command->string );
+    const command_t* command = get( this->cmd_history, index );
+    printf( "%d: %s\n", index, command->string );
   }
 }
 
 void shell_bi_showpids( const shell_t* this, const command_t* command )
 {
-  unsigned int count = get_print_count( 10, command, &this->pid_history );
+  unsigned int count = 10;
+
+  if ( this->pid_history->size < count )
+  {
+    count = this->pid_history->size;
+  }
 
   // jump ahead to the first element we should print
-  list_iter_t iter = list_iter_create( &this->pid_history );
-  list_iter_jump( &iter, this->pid_history.size - count );
+  unsigned int index = this->pid_history->size - count;
 
-  // actually print out the history item
-  unsigned int i;
-  for ( i = 0; i < count; i++ )
+  typeof( this->pid_history->fun->get ) get = this->pid_history->fun->get;
+
+  for ( ; index < this->pid_history->size; index++ )
   {
-    pid_t* pid = list_iter_pop( &iter );
-    printf( "%d: %d\n", i, *pid );
+    pid_t pid = get( this->pid_history, index );
+    printf( "%d: %d\n", index, pid );
   }
 }
 
@@ -410,7 +367,7 @@ void shell_bi_run_history( shell_t* this, const command_t* command )
   // !! => last item
   if ( strcmp( name, "!!" ) == 0 )
   {
-    index = this->cmd_history.size - 1;
+    index = this->cmd_history->size - 1;
   }
   // !+<num> => absolute offset
   else if ( name[ 1 ] == '+' )
@@ -421,31 +378,35 @@ void shell_bi_run_history( shell_t* this, const command_t* command )
   else
   {
     // start at the 15th-to-last item
-    if ( this->cmd_history.size <= 15 )
+    if ( this->cmd_history->size <= 15 )
     {
       index = 0;
     }
     else
     {
-      index = this->cmd_history.size - 16;
+      index = this->cmd_history->size - 16;
     }
 
     // then add our offset from the user
     index += strtol( name + 1, NULL, 0 );
   }
 
-  list_iter_t iter = list_iter_create( &this->cmd_history );
-  list_iter_jump( &iter, index );
+  // the original command we need to duplicate
+  const command_t* srccmd = this->cmd_history->fun->get( 
+      this->cmd_history, 
+      index 
+  );
 
-  // TODO perform a deep-copy of the memory, so the lists
-  // don't reference the same items
-  command_t* newcmd = copy( ( command_t* ) list_iter_pop( &iter ) );
+  // make a duplicate of the srccmd
+  command_t* newcmd = malloc( sizeof( command_t* ) );
+  command_copy( newcmd, srccmd );
 
   // remove the most recent command (i.e. the one that got us
   // here) from the command history, so it will be replaced
   // by the actual item that was run
-  command_t* oldcmd = list_pop( &this->cmd_history );
-  delete( command, oldcmd );
+  command_t* oldcmd = this->cmd_history->fun->pop_back( this->cmd_history );
+  command_destroy( oldcmd );
+  free( oldcmd );
 
   // (indirectly) recursively let this new command be executed
   shell_run_command( this, newcmd );

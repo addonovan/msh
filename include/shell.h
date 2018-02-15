@@ -7,22 +7,25 @@
 #define MSH_SHELL_INS_H
 
 #include <unistd.h>
-#include "list.h"
 #include "command.h"
 #include "handlers.h"
+
+#define TYPE pid_t
+#define COPY_VALUE
+#include "clib/list.h"
 
 typedef struct shell_t shell_t;
 
 struct shell_t 
 {
   /** A list of all commands run by the shell. */
-  list_t cmd_history;
+  list_t(command_t)* cmd_history;
 
   /** A list of all pids run by the shell. */
-  list_t pid_history;
+  list_t(pid_t)* pid_history;
 
   /** A list of all pids running in the background */
-  list_t background_pids;
+  list_t(pid_t)* background_pids;
 
   /** The pid for the current foreground process (or zero for none). */
   pid_t current_pid;

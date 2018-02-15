@@ -8,7 +8,7 @@
 
 #include <unistd.h>
 #include <stdbool.h>
-#include "list.h"
+#include "clib/primitive_lists.h"
 
 /**
  * A command type.
@@ -19,7 +19,7 @@ typedef struct command_t {
   char* string;
 
   /** A list of all of the tokens in this command */
-  list_t tokens;
+  list_t(string)* tokens;
 
 } command_t;
 
@@ -27,6 +27,8 @@ typedef struct command_t {
  * Initializes a command.
  */
 void command_init( command_t* );
+
+void command_copy( command_t* this, const command_t* src );
 
 /**
  * Reads a new command from the user. This also prints out the shell's
@@ -54,6 +56,10 @@ const char* command_get_name( const command_t* );
  */
 pid_t command_exec( const command_t* );
 
+// define a list of commands
+#define HEADER_ONLY
+#define TYPE command_t
+#include "clib/list.h"
 
 #endif
 
