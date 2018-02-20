@@ -13,10 +13,6 @@
 #include "command.h"
 #include "clib/memory.h"
 
-// implement the command list
-#define TYPE command_t
-#include "clib/list.h"
-
 void command_init( command_t* this )
 {
   this->string = NULL;
@@ -114,8 +110,8 @@ void command_read( command_t* this )
 #undef BUFFER_SIZE
 
   // consolidate string into a single char*
-  char* text = calloc( sizeof( char ), string.size + 1 );
-  char* current = text;
+  this->string = calloc( sizeof( char ), string.size + 1 );
+  char* current = this->string;
   while ( string.size > 0 )
   {
     *current = string.fun->pop( &string );

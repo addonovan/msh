@@ -9,10 +9,7 @@
 #include <unistd.h>
 #include "command.h"
 #include "handlers.h"
-
-#define TYPE pid_t
-#define COPY_VALUE
-#include "clib/list.h"
+#include "generic.h"
 
 typedef struct shell_t shell_t;
 

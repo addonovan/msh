@@ -136,13 +136,13 @@ void shell_suspend( shell_t* this )
 {
   // if we aren't running anything, just don't do anything
   if ( this->current_pid == 0 ) return;
-
-  // suspend the process
-  kill( this->current_pid, SIGTSTP );
-
+  
   // push it onto the stack of waiting processes
   pid_t pid = this->current_pid;
   this->background_pids->fun->push( this->background_pids, pid );
+
+  // suspend the process
+  kill( this->current_pid, SIGTSTP );
 
   // tell the user
   printf( "\r[%d]  + %d suspended\n", this->background_pids->size, pid );
@@ -162,7 +162,7 @@ pid_t shell_resume( shell_t* this )
   pid_t pid = this->background_pids->fun->pop( this->background_pids );
 
   // notify the user
-  printf( "[%d]  - continued%d\n", size + 1, pid );
+  printf( "[%d]  - %d continued\n", size, pid );
 
   // tell the process to resume
   kill( pid, SIGCONT );
@@ -326,14 +326,15 @@ void shell_bi_history( const shell_t* this, const command_t* command )
   }
 
   // jump ahead to the first element we should print
-  unsigned int index = this->cmd_history->size - count;
+  unsigned int offset = this->cmd_history->size - count;
 
   typeof( this->cmd_history->fun->get ) get = this->cmd_history->fun->get;
 
+  int index = offset;
   for ( ; index < this->cmd_history->size; index++ )
   {
     const command_t* command = get( this->cmd_history, index );
-    printf( "%d: %s\n", index, command->string );
+    printf( "%d: %s\n", index - offset, command->string );
   }
 }
 
@@ -351,10 +352,12 @@ void shell_bi_showpids( const shell_t* this, const command_t* command )
 
   typeof( this->pid_history->fun->get ) get = this->pid_history->fun->get;
 
+  unsigned int offset = index;
+
   for ( ; index < this->pid_history->size; index++ )
   {
     pid_t pid = get( this->pid_history, index );
-    printf( "%d: %d\n", index, pid );
+    printf( "%d: %d\n", index - offset, pid );
   }
 }
 

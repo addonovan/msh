@@ -3,12 +3,14 @@
  * Id:   1001311620
  */
 
-#ifndef MSH_COMMAND_H
-#define MSH_COMMAND_H
+#ifndef __MSH_COMMAND_H__
+#define __MSH_COMMAND_H__
+
+typedef struct command_t command_t;
 
 #include <unistd.h>
 #include <stdbool.h>
-#include "clib/primitive_lists.h"
+#include "generic.h"
 
 /**
  * A command type.
@@ -55,11 +57,6 @@ const char* command_get_name( const command_t* );
  * child process which ran (or is running).
  */
 pid_t command_exec( const command_t* );
-
-// define a list of commands
-#define HEADER_ONLY
-#define TYPE command_t
-#include "clib/list.h"
 
 #endif
 

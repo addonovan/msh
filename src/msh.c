@@ -11,6 +11,7 @@ int main()
 {
   shell_t* shell = malloc( sizeof( *shell ) );
   shell_init( shell );
+  shell_set_active( shell );
 
   // never have to worry about deleting the command,a
   // as its ownership is passed off into the shell
