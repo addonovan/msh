@@ -1,3 +1,11 @@
+/*
+ * Name: Austin Donovan
+ * Id:   1001311620
+ */
+
+// This file just defines new list(T)s for various T's needed in the program
+// The actual generation is done in clib/list.
+
 #ifndef __MSH_GENERIC_H__
 #define __MSH_GENERIC_H__
 
