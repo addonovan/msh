@@ -3,8 +3,9 @@
  * Id:   1001311620
  */
 
-#include <stdlib.h>
+#define _GNU_SOURCE
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <stdbool.h>

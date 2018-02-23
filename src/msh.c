@@ -30,5 +30,7 @@ int main()
 
   shell_destroy( shell );
   free( shell );
+
+  return 0;
 }
 

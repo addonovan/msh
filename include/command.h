@@ -15,7 +15,7 @@ typedef struct command_t command_t;
 /**
  * A command type.
  */
-typedef struct command_t {
+struct command_t {
   
   /** The string entered by the user */
   char* string;
@@ -23,7 +23,7 @@ typedef struct command_t {
   /** A list of all of the tokens in this command */
   list_t(string)* tokens;
 
-} command_t;
+};
 
 /**
  * Initializes a command.

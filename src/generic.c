@@ -11,7 +11,6 @@
 #define COPY_VALUE
 #include "clib/list.h"
 
-typedef char* string;
 #define IMPLEMENTATION_ONLY
 #define TYPE string
 #define COPY_VALUE
