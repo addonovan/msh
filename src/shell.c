@@ -143,7 +143,7 @@ void shell_suspend( shell_t* this )
   this->background_pids->fun->push( this->background_pids, pid );
 
   // suspend the process and it's process group
-  kill( -this->current_pid, SIGTSTP );
+  kill( -this->current_pid, SIGSTOP );
 
   // tell the user
   printf( "\r[%d]  + %d suspended\n", this->background_pids->size, pid );
@@ -165,8 +165,9 @@ pid_t shell_resume( shell_t* this )
   // notify the user
   printf( "[%d]  - %d continued\n", size, pid );
 
-  // tell the process (and its group) to resume
-  kill( -pid, SIGCONT );
+  // tell the process to resume
+  // NOTE: -pid DOES NOT work here, it'll just do nothing.
+  kill( pid, SIGCONT );
 
   return pid;
 }
