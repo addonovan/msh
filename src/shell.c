@@ -187,6 +187,7 @@ void shell_wait( shell_t* this )
     const char* signal_text = strsignal( WTERMSIG( status ) );
 
     printf( KRED "! [%d] %s\n" KNRM, this->current_pid, signal_text );
+    printf( KRED "! " KNRM );
   }
 
   // if the program emmitted a non-zero exit code
