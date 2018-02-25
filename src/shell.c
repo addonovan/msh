@@ -49,9 +49,9 @@ static void signal_handler( int signal )
       shell_suspend( g_active_shell );
       break;
 
-    // just forward all other signals to the current process 
+    // just forward all other signals to the current process's pgroup
     default:
-      kill( g_active_shell->current_pid, signal );
+      kill( -g_active_shell->current_pid, signal );
       break;
   }
 }
@@ -142,8 +142,8 @@ void shell_suspend( shell_t* this )
   pid_t pid = this->current_pid;
   this->background_pids->fun->push( this->background_pids, pid );
 
-  // suspend the process
-  kill( this->current_pid, SIGTSTP );
+  // suspend the process and it's process group
+  kill( -this->current_pid, SIGTSTP );
 
   // tell the user
   printf( "\r[%d]  + %d suspended\n", this->background_pids->size, pid );
@@ -165,8 +165,8 @@ pid_t shell_resume( shell_t* this )
   // notify the user
   printf( "[%d]  - %d continued\n", size, pid );
 
-  // tell the process to resume
-  kill( pid, SIGCONT );
+  // tell the process (and its group) to resume
+  kill( -pid, SIGCONT );
 
   return pid;
 }
