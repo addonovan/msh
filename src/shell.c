@@ -112,6 +112,17 @@ void shell_init( shell_t* this )
 
 void shell_destroy( shell_t* this )
 {
+  // kill ALL background processes with SIGKILL so that we don't
+  // leave anything behind
+  while ( this->background_pids->size > 0 )
+  {
+    pid_t pid = this->background_pids->fun->pop( this->background_pids );
+
+    // here we make sure the entire process group gets it, so as to
+    // not leave any orphaned processes
+    kill( -pid, SIGKILL );
+  }
+
   delete( this->cmd_history );
   delete( this->pid_history );
   delete( this->background_pids );
